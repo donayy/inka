@@ -2,7 +2,9 @@ import pandas as pd
 import streamlit as st
 
 # Verisetinin GitHub URL'si
-DATA_URL = "https://raw.githubusercontent.com/<kullanıcı_adınız>/<depo_adınız>/main/movies_new.csv"
+DATA_URL = "https://raw.githubusercontent.com/donayy/inka/main/movies_short.csv"
+
+
 
 @st.cache_data
 def load_data():
