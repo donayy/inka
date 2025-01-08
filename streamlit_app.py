@@ -107,6 +107,48 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
 
     return qualified[['title', 'vote_average', 'wr']].reset_index(drop=True)
 
+# Cast column preprocessing function
+def preprocess_cast_column(df):
+    # Split the cast column by commas and create new columns for each actor
+    cast_columns = df['cast'].str.split(',', expand=True)
+    df = pd.concat([df, cast_columns], axis=1)
+    return df
+
+# Cast-based recommender function
+def cast_based_recommender_tmdb_f(df, cast_name, percentile=0.90):
+    # Preprocess the cast column
+    df = preprocess_cast_column(df)
+
+    # Find films with the given cast member
+    cast_columns = df.columns[5:]  # New cast columns (excluding the first 5 columns)
+    df_cast = df[df[cast_columns].apply(lambda x: x.str.contains(cast_name, na=False).any(), axis=1)]
+
+    # If no films found for the cast member
+    if df_cast.empty:
+        return f"{cast_name} için film bulunamadı."
+
+    # Filter films by tmdb_vote_count and tmdb_vote_average
+    vote_counts = df_cast[df_cast['tmdb_vote_count'].notnull()]['tmdb_vote_count'].astype('int')
+    vote_averages = df_cast[df_cast['tmdb_vote_average'].notnull()]['tmdb_vote_average'].astype('int')
+    C = vote_averages.mean()
+    m = vote_counts.quantile(percentile)
+
+    qualified = df_cast[(df_cast['tmdb_vote_count'] >= m) &
+                        (df_cast['tmdb_vote_count'].notnull()) &
+                        (df_cast['tmdb_vote_average'].notnull())][
+        ['title', 'tmdb_vote_count', 'tmdb_vote_average', 'popularity']]
+
+    # Calculate weighted rating (wr)
+    qualified['wr'] = qualified.apply(
+        lambda x: (x['tmdb_vote_count'] / (x['tmdb_vote_count'] + m) * x['tmdb_vote_average']) + (
+                    m / (m + x['tmdb_vote_count']) * C),
+        axis=1)
+
+    # Sort the results and return the top 10 films
+    qualified = qualified.drop_duplicates(subset='title')
+    qualified = qualified.sort_values('wr', ascending=False).head(10)["title"]
+
+    return qualified.reset_index(drop=True)
 
 # Uygulama başlıyor
 st.title("Inka & Chill 🎥")
@@ -117,12 +159,12 @@ try:
 
     # Simple Recommender Başlangıç
     st.write("Öncelikle şunları önerebilirim:")
-    if st.button("En beğenilen 10 film için tıklayın"):
+    if st.button("En Beğenilen 10 Film"):
         recommendations_simple = simple_recommender_tmdb(df)
         st.table(recommendations_simple)
 
     # Genre-Based Recommender Başlangıç
-    genre_input = st.text_input("Dilerseniz türe göre arama yapalım. Bir tür girin (örneğin; Action, Drama, Comedy):")
+    genre_input = st.text_input("Dilerseniz türe göre arama yapalım. Bir tür girin (örneğin, Action, Drama, Comedy):")
     if genre_input:
         recommendations_genre = genre_based_recommender_tmbd_f(df, genre_input)
         if not recommendations_genre.empty:
@@ -132,7 +174,7 @@ try:
             st.write("Bu türde yeterli film bulunamadı.")
 
     # Director-Based Recommender Başlangıç
-    director_input = st.text_input("Dilerseniz yönetmene göre arama yapalım. Bir yönetmen ismi girin (örneğin; Christopher Nolan):")
+    director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
     if director_input:
         recommendations_director = director_based_recommender_tmdb_f(director_input, df)
         if not recommendations_director.empty:
@@ -140,6 +182,16 @@ try:
             st.table(recommendations_director)
         else:
             st.write("Bu yönetmenin yönetmenliğinde yeterli film bulunamadı.")
+    
+    # Cast-Based Recommender Başlangıç
+    cast_input = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale):")
+    if cast_input:
+        recommendations_cast = cast_based_recommender_tmdb_f(df, cast_input)
+        if isinstance(recommendations_cast, pd.Series):
+            st.write(f"{cast_input.capitalize()} oyuncusunun yer aldığı öneriler:")
+            st.table(recommendations_cast)
+        else:
+            st.write(recommendations_cast)
 
 except Exception as e:
     st.error(f"Veri yüklenirken bir hata oluştu: {e}")
