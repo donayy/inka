@@ -205,11 +205,24 @@ def content_based_recommender(title, dataframe, top_n=10):
 
 # Mood-based recommender function
 mood_to_genre = {
-    "happy": ["comedy", "family"],
-    "sad": ["drama", "romance"],
-    "adventurous": ["action", "adventure"],
-    "scary": ["horror", "thriller"]
+    "happy": ["comedy", "family", "musical"],
+    "sad": ["drama", "romance", "biography"],
+    "adventurous": ["action", "adventure", "fantasy", "sci-fi"],
+    "scary": ["horror", "thriller", "mystery"],
+    "excited": ["action", "adventure", "sci-fi", "crime"],
+    "relaxed": ["comedy", "family", "romance", "animation"],
+    "curious": ["mystery", "documentary", "crime"],
+    "nostalgic": ["classic", "musical", "family", "romance"],
+    "inspired": ["biography", "history", "sport", "drama"],
+    "romantic": ["romance", "comedy", "drama"],
+    "thoughtful": ["drama", "mystery", "sci-fi"],
+    "funny": ["comedy", "animation", "family"],
+    "dark": ["thriller", "horror", "crime", "drama"],
+    "uplifting": ["family", "musical", "adventure", "comedy"],
+    "tense": ["thriller", "crime", "mystery", "horror"],
+    "magical": ["fantasy", "sci-fi", "animation", "adventure"]
 }
+
 
 def mood_based_recommender(mood, dataframe, top_n=10):
     # Get genres related to the mood
