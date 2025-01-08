@@ -34,9 +34,6 @@ st.write("TMDB tabanlı basit tavsiye sistemi.")
 
 try:
     df = load_data()
-    st.success("Veri başarıyla yüklendi!")
-    st.dataframe(df.head())
-    
     # Tavsiye sistemi düğmesi
     if st.button("Tavsiye Al"):
         st.write("Tavsiye edilen filmler:")
@@ -44,5 +41,6 @@ try:
         st.table(recommendations)
 except Exception as e:
     st.error(f"Veri yüklenirken bir hata oluştu: {e}")
+
 
 
