@@ -4,27 +4,22 @@ import streamlit as st
 # Verisetinin GitHub URL'si
 DATA_URL = "https://raw.githubusercontent.com/donayy/inka/main/movies_short.csv"
 
-# Veriyi yükleyen fonksiyon
 @st.cache_data
 def load_data(url):
     try:
-        data = pd.read_csv(url, encoding="latin1")  # Alternatif olarak "ISO-8859-1" deneyebilirsiniz
+        data = pd.read_csv(url, encoding="utf-8")  # Alternatif encoding: "latin1"
         return data
     except Exception as e:
         st.error(f"Veri yüklenirken bir hata oluştu: {e}")
         return None
 
+st.title("Inka ve Chill")
 
-# Veriyi yükle
+st.write("Veri yükleniyor...")
 df = load_data(DATA_URL)
 
-# Eğer veri başarıyla yüklendiyse göster
 if df is not None:
     st.write("Veri başarıyla yüklendi!")
     st.dataframe(df.head())
 else:
     st.error("Veri yüklenemedi, lütfen bağlantıyı kontrol edin!")
-
-
-
-
