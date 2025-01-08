@@ -250,6 +250,33 @@ def mood_based_recommender(mood, dataframe, top_n=10):
 st.title("Inka & Chill 🎥")
 st.write("Ne izlesek?")
 
+st.markdown(
+    """
+    <style>
+    .center-title {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 40px;
+        font-weight: bold;
+        margin-top: -50px;
+    }
+    .page-title {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        font-weight: normal;
+        margin-bottom: 20px;
+    }
+    </style>
+    <div class="center-title">Inka & Chill </div>
+    <div class="page-title">Tür Bazlı Tavsiye!</div>
+    """,
+    unsafe_allow_html=True
+)
+
+
 try:
     df = load_data()
 
