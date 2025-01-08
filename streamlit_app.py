@@ -251,6 +251,47 @@ def mood_based_recommender(mood, dataframe, top_n=10):
 st.markdown(
     """
     <style>
+    body {
+        background-color: #121212; /* Koyu Gri */
+        color: #FFFFFF; /* Beyaz */
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: #FFD700; /* Altın Sarısı */
+    }
+
+    [data-testid="stSidebar"] {
+        background-color: #1C1C1C; /* Sidebar için koyu gri */
+        color: #FFFFFF; /* Sidebar metin rengi beyaz */
+    }
+
+    .stButton>button {
+        background-color: #FFD700; /* Buton için Altın Sarısı */
+        color: #121212; /* Metin için koyu gri */
+        border-radius: 10px;
+        padding: 10px 20px;
+        border: none;
+        font-weight: bold;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    """
+    <style>
+    h1 {
+        text-align: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    """
+    <style>
     .center-title {
         display: flex;
         justify-content: center;
@@ -275,6 +316,7 @@ st.markdown(
 )
 
 
+
 try:
     df = load_data()
 
@@ -293,7 +335,7 @@ try:
             for _, row in recommendations_simple.iterrows():
                 st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']})")
                 if row['poster_url']:
-                    st.image(row['poster_url'], width=300)
+                    st.image(row['poster_url'], width=500)
                 else:
                     st.write("Poster bulunamadı.")
 
