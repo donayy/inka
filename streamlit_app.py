@@ -75,7 +75,6 @@ st.write("TMDB tabanlı önerici sistem.")
 
 try:
     df = load_data()
-    st.success("Veri başarıyla yüklendi!")
 
     # Simple Recommender Başlangıç
     if st.button("En İyi 10 Film (Simple Recommender)"):
