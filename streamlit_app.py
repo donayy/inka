@@ -174,13 +174,13 @@ def jaccard_similarity(set1, set2):
 def content_based_recommender(title, dataframe, top_n=10):
     target_movie = dataframe[dataframe['title'] == title]
     if target_movie.empty:
-        return pd.DataFrame(columns=['title', 'score'])
+        return pd.DataFrame(columns=['Film Adı', 'IMDB Rating'])
 
     target_movie = target_movie.iloc[0]
     target_genres = set(target_movie['genres']) if isinstance(target_movie['genres'], list) else set(str(target_movie['genres']).split(','))
     target_keywords = set(target_movie['keywords']) if isinstance(target_movie['keywords'], list) else set(str(target_movie['keywords']).split(','))
 
-    scores = []
+    recommendations = []
     for _, row in dataframe.iterrows():
         if row['title'] != title:
             genres = set(row['genres']) if isinstance(row['genres'], list) else set(str(row['genres']).split(','))
@@ -188,11 +188,14 @@ def content_based_recommender(title, dataframe, top_n=10):
             genre_score = jaccard_similarity(target_genres, genres)
             keyword_score = jaccard_similarity(target_keywords, keywords)
             total_score = genre_score * 0.7 + keyword_score * 0.3
-            scores.append({'title': row['title'], 'score': total_score})
+            
+            recommendations.append({'Film Adı': row['title'], 'IMDB Rating': row['averageRating']})
 
-    sorted_scores = sorted(scores, key=lambda x: x['score'], reverse=True)[:top_n]
+    # Sort by averageRating 
+    sorted_recommendations = sorted(recommendations, key=lambda x: x['IMDB Rating'], reverse=True)[:top_n]
 
-    return pd.DataFrame(sorted_scores).reset_index(drop=True)
+    return pd.DataFrame(sorted_recommendations).reset_index(drop=True)
+
 
 # Mood-based recommender function
 mood_to_genre = {
