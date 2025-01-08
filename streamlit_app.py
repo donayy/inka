@@ -10,22 +10,28 @@ POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"  # Base URL for TMDB poster 
 
 
 @st.cache_data
+@st.cache_data
 def load_data():
-    # Load data from the provided URL
+    # Veriyi yükle
     df = pd.read_csv(DATA_URL, on_bad_lines="skip")
     
-    # Normalize the 'genres' and 'keywords' columns to be lists
-    df['genres'] = df['genres'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
+    # genres kolonunu normalize et
+    if 'genres' in df.columns:
+        df['genres'] = df['genres'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
+    else:
+        st.error("'genres' kolonu bulunamadı. Lütfen verinizi kontrol edin.")
+        return pd.DataFrame()  # Boş bir dataframe döndür
+    
+    # keywords ve overview kolonlarını normalize et
     df['keywords'] = df['keywords'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
-    
-    # Ensure 'overview' and 'keywords' are strings for string operations
     df['overview'] = df['overview'].fillna('').astype(str)
-    df['keywords'] = df['keywords'].fillna('').astype(str)
     
-    # Add full poster URL column
-    df['poster_url'] = df['backdrop_path'].apply(lambda x: f"{POSTER_BASE_URL}{x}" if pd.notnull(x) else None)
+    # Poster URL'si oluştur
+    if 'backdrop_path' in df.columns:
+        df['poster_url'] = df['backdrop_path'].apply(lambda x: f"{POSTER_BASE_URL}{x}" if pd.notnull(x) else None)
     
     return df
+
 
 # Simple recommender function
 def simple_recommender_tmdb(df, percentile=0.95):
