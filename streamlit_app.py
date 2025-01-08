@@ -98,7 +98,7 @@ def genre_based_recommender_tmbd_f(df, genre, percentile=0.90):
     
 def get_genre_suggestions(partial_input, all_genres):
     partial_input = partial_input.lower()
-    suggestions = [genre for genre in all_genres if genre.startswith(partial_input)]
+    suggestions = [genre for genre in all_genres if partial_input in genre]
     return suggestions
 
 # Director-based recommender function
@@ -286,10 +286,12 @@ try:
             suggestions = get_genre_suggestions(genre_input, all_genres)
             if suggestions:
                 st.write("Öneriler:")
-                st.write(", ".join(suggestions))  
+                for suggestion in suggestions[:5]:
+                    st.write(f"- {suggestion.capitalize()}")
         
             closest_match = suggestions[0] if suggestions else genre_input
             recommendations = genre_based_recommender_tmbd_f(df, closest_match)
+            
             if not recommendations.empty:
                 st.write(f"'{closest_match.capitalize()}' türündeki öneriler:")
                 st.table(recommendations)
