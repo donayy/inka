@@ -8,11 +8,12 @@ DATA_URL = "https://raw.githubusercontent.com/donayy/inka/main/movies_short.csv"
 @st.cache_data
 def load_data(url):
     try:
-        data = pd.read_csv(url)
+        data = pd.read_csv(url, encoding="latin1")  # Alternatif olarak "ISO-8859-1" deneyebilirsiniz
         return data
     except Exception as e:
         st.error(f"Veri yüklenirken bir hata oluştu: {e}")
         return None
+
 
 # Veriyi yükle
 df = load_data(DATA_URL)
