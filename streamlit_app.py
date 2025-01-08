@@ -5,7 +5,7 @@ from rapidfuzz import fuzz, process  # For better fuzzy matching
 import difflib
 
 # Verisetinin GitHub URL'si
-DATA_URL = "https://raw.githubusercontent.com/donayy/inka/refs/heads/main/movie_dataset.csv"
+DATA_URL = "https://raw.githubusercontent.com/donayy/inka/refs/heads/main/movies_dataset.csv"
 POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"  # Base URL for TMDB poster images
 
 
