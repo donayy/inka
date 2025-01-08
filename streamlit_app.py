@@ -244,7 +244,7 @@ try:
          "Ruh Hali Bazlı Tavsiye")
     )
 
-    if page == "Simple Recommender":
+    if page == "En Beğenilen Filmler":
         st.write("En Beğenilen Filmler")
         if st.button("En beğenilen 10 film için tıklayın"):
             recommendations_simple = simple_recommender_tmdb(df)
@@ -255,7 +255,7 @@ try:
                 else:
                     st.write("Poster bulunamadı.")
 
-    elif page == "Genre-Based Recommender":
+    elif page == "Tür Bazlı Tavsiye":
         st.write("Tür Bazlı Tavsiye")
         genre = st.text_input("Bir tür girin (örneğin, Action):")
         if genre:
@@ -265,7 +265,7 @@ try:
             else:
                 st.write(f"'{genre}' türünde yeterli film bulunamadı.")
 
-    elif page == "Director-Based Recommender":
+    elif page == "Yönetmen Bazlı Tavsiye":
         st.write("Yönetmen Bazlı Tavsiye")
         director = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
         if director:
@@ -275,7 +275,7 @@ try:
             else:
                 st.write(recommendations)
                 
-    elif page == "Cast-Based Recommender":
+    elif page == "Oyuncu Bazlı Tavsiye":
         st.write("Oyuncu Bazlı Tavsiye")
         cast_name = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale):")
         if cast_name:
@@ -283,7 +283,7 @@ try:
             st.table(recommendations)
 
     
-    elif page == "Content-Based Recommender":
+    elif page == "Filme Göre Tavsiye":
         st.write("Filme Göre Tavsiye")
         movie_title = st.text_input("Bir film ismi girin (örneğin, Inception):")
         if movie_title:
@@ -291,14 +291,14 @@ try:
             st.table(recommendations)
 
 
-    elif page == "Keyword-Based Recommender":
+    elif page == "İçerik Bazlı Tavsiye":
         st.write("İçerik Bazlı Tavsiye")
         keyword = st.text_input("Bir kelime girin (örneğin, Christmas):")
         if keyword:
             recommendations = keyword_based_recommender(keyword, df)
             st.table(recommendations)
 
-    elif page == "Mood-Based Recommender":
+    elif page == "Ruh Hali Bazlı Tavsiye":
         st.write("Ruh Hali Bazlı Tavsiye")
         mood = st.text_input("Bir ruh hali girin (örneğin, happy, sad):")
         if mood:
