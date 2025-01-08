@@ -177,24 +177,30 @@ def content_based_recommender(title, dataframe, top_n=10):
         return pd.DataFrame(columns=['Film Adı', 'IMDB Rating'])
 
     target_movie = target_movie.iloc[0]
+
     target_genres = set(target_movie['genres']) if isinstance(target_movie['genres'], list) else set(str(target_movie['genres']).split(','))
     target_keywords = set(target_movie['keywords']) if isinstance(target_movie['keywords'], list) else set(str(target_movie['keywords']).split(','))
 
     recommendations = []
+
     for _, row in dataframe.iterrows():
         if row['title'] != title:
             genres = set(row['genres']) if isinstance(row['genres'], list) else set(str(row['genres']).split(','))
             keywords = set(row['keywords']) if isinstance(row['keywords'], list) else set(str(row['keywords']).split(','))
+            
             genre_score = jaccard_similarity(target_genres, genres)
             keyword_score = jaccard_similarity(target_keywords, keywords)
             total_score = genre_score * 0.7 + keyword_score * 0.3
-            
-            recommendations.append({'Film Adı': row['title'], 'IMDB Rating': row['averageRating']})
 
-    # Sort by averageRating 
-    sorted_recommendations = sorted(recommendations, key=lambda x: x['IMDB Rating'], reverse=True)[:top_n]
+            if pd.isna(row['averageRating']):
+                continue
 
-    return pd.DataFrame(sorted_recommendations).reset_index(drop=True)
+            recommendations.append({'Film Adı': row['title'], 'IMDB Rating': row['averageRating'], 'Total Score': total_score})
+
+    sorted_recommendations = sorted(recommendations, key=lambda x: x['Total Score'], reverse=True)[:top_n]
+
+    return pd.DataFrame(sorted_recommendations).drop(columns=['Total Score']).reset_index(drop=True)
+
 
 
 # Mood-based recommender function
@@ -233,13 +239,13 @@ try:
     st.sidebar.title("Navigasyon")
     page = st.sidebar.radio(
         "Gitmek istediğiniz sayfayı seçin:",
-        ("Simple Recommender", "Genre-Based Recommender", "Director-Based Recommender", 
-         "Cast-Based Recommender", "Content-Based Recommender", "Keyword-Based Recommender",
-         "Mood-Based Recommender")
+        ("En Beğenilen Filmler", "Tür Bazlı Tavsiye", "Yönetmen Bazlı Tavsiye", 
+         "Oyuncu Bazlı Tavsiye", "Filme Göre Tavsiye", "İçerik Bazlı Tavsiye",
+         "Ruh Hali Bazlı Tavsiye")
     )
 
     if page == "Simple Recommender":
-        st.write("En Beğenilenler")
+        st.write("En Beğenilen Filmler")
         if st.button("En beğenilen 10 film için tıklayın"):
             recommendations_simple = simple_recommender_tmdb(df)
             for _, row in recommendations_simple.iterrows():
