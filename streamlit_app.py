@@ -109,23 +109,31 @@ def get_genre_suggestions(partial_input, all_genres):
 
 # Director-based recommender function
 def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
+    # Check for 'numVotes' column
+    if 'numVotes' not in dataframe.columns:
+        return "Hata: 'numVotes' sütunu veri çerçevesinde bulunamadı."
 
-    director = director.strip().lower()
-    dataframe['directors'] = dataframe['directors'].fillna('').str.strip().str.lower()
-
+    # Normalize 'directors' column
+    dataframe['directors'] = dataframe['directors'].fillna('').astype(str)
+    
+    # Get all unique directors
     all_directors = sorted(dataframe['directors'].unique())
 
-    suggestions = [d for d in all_directors if director in d]
-    if not suggestions:
-        return f"'{director}' ile eşleşen bir yönetmen bulunamadı."
+    # Find suggestions
+    suggestions = get_director_suggestions(director, all_directors)
 
+    if not suggestions:
+        return f"'{director}' ile başlayan bir yönetmen bulunamadı. Lütfen başka bir isim deneyin."
+    
+    # Use the closest match from suggestions
     closest_match = suggestions[0]
 
-    df = dataframe[dataframe['directors'] == closest_match]
+    # Filter dataframe by matched director
+    df = dataframe[dataframe['directors'].str.contains(closest_match, case=False, na=False)]
     if df.empty:
-        return f"'{closest_match}' yönetmenine ait yeterli veri bulunamadı."
+        return f"'{closest_match}' isimli yönetmenin yeterli filmi bulunamadı."
 
-    # Ağırlıklı puan hesaplama
+    # Calculate weighted rating
     num_votes = df[df['numVotes'].notnull()]['numVotes'].astype('int')
     vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('float')
     C = vote_averages.mean()
@@ -141,11 +149,9 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
     return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
 
 
-
-
 def get_director_suggestions(partial_input, all_directors):
     partial_input = partial_input.lower()
-    suggestions = [d for d in all_directors if partial_input in d]
+    suggestions = [director for director in all_directors if partial_input in director.lower()]
     return suggestions
 
 
@@ -477,35 +483,35 @@ try:
         
     
     elif page == "Yönetmen Seçimine Göre":
-        all_directors = sorted(set(df['directors'].dropna().unique()))
         director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
 
         if director_input:
+            all_directors = sorted(df['directors'].fillna('').unique())
             suggestions = get_director_suggestions(director_input, all_directors)
 
             if suggestions:
-                st.write("Önerilen Yönetmenler:")
-                for suggestion in suggestions[:5]:  
-                    st.write(f"- {suggestion.capitalize()}")
-
+                st.write("Yönetmen Önerileri:")
+                for suggestion in suggestions[:5]:
+                    st.write(f"- {suggestion}")
+            
                 closest_match = suggestions[0]
                 recommendations = director_based_recommender_tmdb_f(closest_match, df)
-
-                if not recommendations.empty:
-                    st.write(f"'{closest_match.capitalize()}' yönetmenine ait öneriler:")
+            
+                if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
+                    st.write(f"'{closest_match}' yönetmeninden öneriler:")
                     for _, row in recommendations.iterrows():
                         st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']})")
                         if row['poster_url']:
-                            st.image(row['poster_url'], width=150)
+                            st.image(row['poster_url'], width=200)
                         else:
                             st.write("Poster bulunamadı.")
                 else:
-                    st.write(f"'{closest_match}' yönetmenine ait öneri bulunamadı.")
+                    st.write(recommendations)
             else:
-                st.write(f"'{director_input}' ile başlayan bir yönetmen bulunamadı.")
+                st.write(f"'{director_input}' ile başlayan bir yönetmen bulunamadı. Lütfen başka bir isim deneyin.")
 
 
-                
+
     elif page == "Oyuncu Seçimine Göre":
         cast_name = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale):")
         if cast_name:
