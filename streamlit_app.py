@@ -95,7 +95,11 @@ def genre_based_recommender_tmbd_f(df, genre, percentile=0.90):
 
     qualified = qualified.drop_duplicates(subset='title')
     return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating']].reset_index(drop=True)
-
+    
+def get_genre_suggestions(partial_input, all_genres):
+    partial_input = partial_input.lower()
+    suggestions = [genre for genre in all_genres if genre.startswith(partial_input)]
+    return suggestions
 
 # Director-based recommender function
 def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
@@ -270,14 +274,30 @@ try:
 
     elif page == "Tür Bazlı Tavsiye":
         st.write("Tür Bazlı Tavsiye")
-        genre = st.text_input("Bir tür girin (örneğin, Action):")
-        if genre:
-            recommendations = genre_based_recommender_tmbd_f(df, genre)
+
+        # Normalize genres column once
+        df['genres'] = df['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
+        all_genres = sorted(set(genre.strip().lower() for genres in df['genres'] for genre in genres))
+
+
+        genre_input = st.text_input("Bir tür girin (örneğin, Action):")
+
+        if genre_input:
+            suggestions = get_genre_suggestions(genre_input, all_genres)
+            if suggestions:
+                st.write("Öneriler:")
+                st.write(", ".join(suggestions))  
+        
+            closest_match = suggestions[0] if suggestions else genre_input
+            recommendations = genre_based_recommender_tmbd_f(df, closest_match)
             if not recommendations.empty:
+                st.write(f"'{closest_match.capitalize()}' türündeki öneriler:")
                 st.table(recommendations)
             else:
-                st.write(f"'{genre}' türünde yeterli film bulunamadı.")
-
+                st.write(f"'{closest_match}' türünde yeterli film bulunamadı.")
+        else:
+            st.write("Tür için bir şeyler yazmaya başlayın...")
+    
     elif page == "Yönetmen Bazlı Tavsiye":
         st.write("Yönetmen Bazlı Tavsiye")
         director = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
