@@ -12,19 +12,19 @@ def load_data():
 
 # Simple Recommender fonksiyonu
 def simple_recommender_tmdb(df, percentile=0.95):
-    vote_counts = df[df['tmdb_vote_count'].notnull()]['tmdb_vote_count'].astype('int')
-    vote_averages = df[df['tmdb_vote_average'].notnull()]['tmdb_vote_average'].astype('int')
+    vote_counts = df[df['vote_count'].notnull()]['vote_count'].astype('int')
+    vote_averages = df[df['vote_average'].notnull()]['vote_average'].astype('int')
     C = vote_averages.mean()
     m = vote_counts.quantile(percentile)
     df['year'] = pd.to_datetime(df['release_date'], errors='coerce').\
         apply(lambda x: str(x).split('-')[0] if pd.notnull(x) else np.nan)
-    qualified = df[(df['tmdb_vote_count'] >= m) & (df['tmdb_vote_count'].notnull()) & (
-        df['tmdb_vote_average'].notnull())][
-        ['title', 'year', 'tmdb_vote_count', 'tmdb_vote_average', 'popularity']]
-    qualified['tmdb_vote_count'] = qualified['tmdb_vote_count'].astype('int')
-    qualified['tmdb_vote_average'] = qualified['tmdb_vote_average'].astype('int')
-    qualified['wr'] = qualified.apply(lambda x: (x['tmdb_vote_count'] / (x['tmdb_vote_count'] + m) *
-                                                 x['tmdb_vote_average']) + (m / (m + x['tmdb_vote_count']) * C), axis=1)
+    qualified = df[(df['vote_count'] >= m) & (df['vote_count'].notnull()) & (
+        df['vote_average'].notnull())][
+        ['title', 'year', 'vote_count', 'vote_average', 'popularity']]
+    qualified['vote_count'] = qualified['vote_count'].astype('int')
+    qualified['vote_average'] = qualified['vote_average'].astype('int')
+    qualified['wr'] = qualified.apply(lambda x: (x['vote_count'] / (x['vote_count'] + m) *
+                                                 x['vote_average']) + (m / (m + x['vote_count']) * C), axis=1)
     qualified = qualified.sort_values('wr', ascending=False).head(10)
     return qualified[['title', 'year', 'wr']].reset_index(drop=True)
 
