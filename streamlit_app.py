@@ -368,10 +368,11 @@ try:
 
     st.sidebar.title("Menu")
     page = st.sidebar.radio(
-        ("En Beğenilen Filmler", "Tür Bazlı Tavsiye", "Yönetmen Bazlı Tavsiye", 
-         "Oyuncu Bazlı Tavsiye", "Filme Göre Tavsiye", "İçerik Bazlı Tavsiye",
-         "Ruh Haline Göre Tavsiye", "Hakkında")
-    )
+    "Menu",  # Başlık
+    options=["En Beğenilen Filmler", "Tür Bazlı Tavsiye", "Yönetmen Bazlı Tavsiye",
+             "Oyuncu Bazlı Tavsiye", "Filme Göre Tavsiye", "İçerik Bazlı Tavsiye",
+             "Ruh Haline Göre Tavsiye", "Hakkında"])
+
 
     if page == "En Beğenilen Filmler":
         if st.button("En beğenilen 10 film için tıklayın"):
@@ -463,19 +464,6 @@ try:
         - IMDB derecelendirmeleri ve popülerlik bazlı sıralama.
         
         **Amacımız:** I.N.K.A. ile herkes için doğru filmi bulmak ve keyifli bir sinema deneyimi yaşatmak!""")
-
-except Exception as e:
-    st.error
-
-
-
-
-
-
-
-
-       
-
 
 
 
