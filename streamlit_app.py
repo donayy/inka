@@ -25,6 +25,7 @@ def load_data():
     # keywords ve overview kolonlarını normalize et
     df['keywords'] = df['keywords'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
     df['overview'] = df['overview'].fillna('').astype(str)
+    df['keywords'] = df['keywords'].fillna('').astype(str)
     
     # Poster URL'si oluştur
     if 'backdrop_path' in df.columns:
@@ -152,12 +153,19 @@ def cast_based_recommender_tmdb_f(df, cast_name, percentile=0.90):
 # Keyword-based recommender function
 def keyword_based_recommender(keyword, dataframe, top_n=10):
     keyword = keyword.lower()
+    
+    # Ensure the columns are strings
+    dataframe['overview'] = dataframe['overview'].astype(str)
+    dataframe['keywords'] = dataframe['keywords'].astype(str)
+    
+    # Filter the dataframe
     filtered_df = dataframe[
         dataframe['overview'].str.lower().str.contains(keyword, na=False) |
         dataframe['keywords'].str.lower().str.contains(keyword, na=False)
     ]
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
     return filtered_df.head(top_n)[['title']]
+
 
 # Content-based recommender using Jaccard similarity
 def jaccard_similarity(set1, set2):
@@ -270,13 +278,17 @@ try:
 
     # Keyword-Based Recommender
     keyword_input = st.text_input("Bir kelime veya tema girin (örneğin, Christmas):")
-    if keyword_input:
-        recommendations_keyword = keyword_based_recommender(keyword_input, df)
-        if not recommendations_keyword.empty:
-            st.write(f"'{keyword_input}' ile ilgili öneriler:")
-            st.table(recommendations_keyword)
-        else:
-            st.write(f"'{keyword_input}' ile ilgili yeterli film bulunamadı.")
+        if keyword_input:
+            try:
+                recommendations_keyword = keyword_based_recommender(keyword_input, df)
+            if not recommendations_keyword.empty:
+                st.write(f"'{keyword_input}' ile ilgili öneriler:")
+                st.table(recommendations_keyword)
+            else:
+                st.write(f"'{keyword_input}' ile ilgili yeterli film bulunamadı.")
+        except Exception as e:
+            st.error(f"Bir hata oluştu: {e}")
+
 
     # Mood-Based Recommender
     mood_input = st.text_input("Bir ruh hali girin (örneğin, happy, sad):")
