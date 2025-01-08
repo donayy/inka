@@ -249,19 +249,20 @@ def mood_based_recommender(mood, dataframe, top_n=10):
 # Streamlit App
 
 st.markdown(
-    """
+    f"""
     <style>
-    body {
-        background-image: url('https://img.freepik.com/free-photo/copy-space-popcorn-table_23-2148470198.jpg?t=st=1736371692~exp=1736375292~hmac=99acfcb457dcd82a820f5d9089e5a7c1890d658a9f5861b02dbae8fc5b704cfa&w=1800');
-        background-size: cover; /* Görseli sayfanın tamamını kaplayacak şekilde ölçekle */
-        background-repeat: no-repeat; /* Görsel tekrar etmesin */
-        background-attachment: fixed; /* Sayfa kayarken arka plan sabit kalsın */
-        background-position: center center; /* Görseli ortala */
-    }
+    .stApp {{
+        background: url("https://res.cloudinary.com/pcf/images/w_676,h_373,c_scale/fl_lossy/f_auto,q_auto/v1674515931/popcorn-featured-image_ey7abq_64765cd80d/popcorn-featured-image_ey7abq_64765cd80d.jpg?_i=AA");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-position: center;
+    }}
     </style>
     """,
     unsafe_allow_html=True
 )
+
 
 
 
