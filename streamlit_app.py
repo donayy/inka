@@ -361,7 +361,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Streamlit CSS stili
 st.markdown(
     """
     <style>
@@ -380,6 +379,21 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+st.markdown(
+    """
+    <style>
+    /* Text Input Kutusunun Yazı Boyutunu ve Stilini Değiştirme */
+    .stTextInput > div > input {
+        font-size: 18px; /* Yazı boyutunu artırın */
+        color: #000000; /* Siyah yazı rengi */
+        padding: 10px; /* Kutunun iç boşluğu */
+        border-radius: 5px; /* Köşeleri yuvarlatma */
+        border: 2px solid #FFD700; /* Altın sarısı çerçeve */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 try:
     df = load_data()
