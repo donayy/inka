@@ -23,7 +23,6 @@ def simple_recommender_tmdb(df, percentile=0.95):
     C = vote_averages.mean()
     m = vote_counts.quantile(percentile)
     df['year'] = pd.to_datetime(df['release_date'], errors='coerce').apply(lambda x: str(x).split('-')[0] if x != np.nan else np.nan)
-    
     qualified = df[(df['vote_count'] >= m) & (df['vote_count'].notnull()) & (df['vote_average'].notnull())][
         ['title', 'year', 'vote_count', 'vote_average', 'popularity']]
     qualified['vote_count'] = qualified['vote_count'].astype('int')
@@ -111,12 +110,10 @@ def cast_based_recommender_tmdb_f(df, cast_name, percentile=0.90):
 # Keyword-based recommender function
 def keyword_based_recommender(keyword, dataframe, top_n=10):
     keyword = keyword.lower()
-    # 'overview' ve 'keywords' sütunlarında arama yap
     filtered_df = dataframe[
         dataframe['overview'].str.lower().str.contains(keyword, na=False) |
         dataframe['keywords'].str.lower().str.contains(keyword, na=False)
     ]
-    # Sonuçları popülerlik veya oy ortalamasına göre sıralayarak getir
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
     return filtered_df.head(top_n)[['title', 'overview']]
 
