@@ -117,12 +117,12 @@ try:
 
     # Simple Recommender Başlangıç
     st.write("Öncelikle şunları önerebilirim:")
-    if st.button("En Beğenilen 10 Film"):
+    if st.button("En beğenilen 10 film için tıklayın"):
         recommendations_simple = simple_recommender_tmdb(df)
         st.table(recommendations_simple)
 
     # Genre-Based Recommender Başlangıç
-    genre_input = st.text_input("Dilerseniz türe göre arama yapalım. Bir tür girin (örneğin, Action, Drama, Comedy):")
+    genre_input = st.text_input("Dilerseniz türe göre arama yapalım. Bir tür girin (örneğin; Action, Drama, Comedy):")
     if genre_input:
         recommendations_genre = genre_based_recommender_tmbd_f(df, genre_input)
         if not recommendations_genre.empty:
@@ -132,7 +132,7 @@ try:
             st.write("Bu türde yeterli film bulunamadı.")
 
     # Director-Based Recommender Başlangıç
-    director_input = st.text_input("Dilerseniz yönetmene göre arama yapalım. Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
+    director_input = st.text_input("Dilerseniz yönetmene göre arama yapalım. Bir yönetmen ismi girin (örneğin; Christopher Nolan):")
     if director_input:
         recommendations_director = director_based_recommender_tmdb_f(director_input, df)
         if not recommendations_director.empty:
