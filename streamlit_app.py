@@ -123,7 +123,7 @@ def keyword_based_recommender(keyword, dataframe, top_n=10):
         dataframe['keywords'].str.lower().str.contains(keyword, na=False)
     ]
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
-    return filtered_df.head(top_n)[['title', 'overview']]
+    return filtered_df.head(top_n)[['title']]
 
 # Content-based recommender using Jaccard similarity
 def jaccard_similarity(set1, set2):
