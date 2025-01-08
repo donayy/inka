@@ -248,6 +248,23 @@ def mood_based_recommender(mood, dataframe, top_n=10):
 
 # Streamlit App
 
+url = "https://img.freepik.com/free-photo/copy-space-popcorn-table_23-2148470198.jpg?t=st=1736371692~exp=1736375292~hmac=99acfcb457dcd82a820f5d9089e5a7c1890d658a9f5861b02dbae8fc5b704cfa&w=1800"
+st.markdown(
+    f"""
+    <style>
+    body {{
+        background-image: url("{url}");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-position: center;
+        color: white;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 st.markdown(
     """
     <style>
@@ -343,22 +360,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-url = "https://img.freepik.com/free-photo/copy-space-popcorn-table_23-2148470198.jpg?t=st=1736371692~exp=1736375292~hmac=99acfcb457dcd82a820f5d9089e5a7c1890d658a9f5861b02dbae8fc5b704cfa&w=1800"
-st.markdown(
-    f"""
-    <style>
-    body {{
-        background-image: url("{url}");
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        background-position: center;
-        color: white;
-    }}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 
 try:
