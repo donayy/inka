@@ -253,7 +253,7 @@ st.markdown(
     <style>
     .stApp {{
         background: url("https://img.freepik.com/free-vector/movie-theater-popcorn-concept-illustration_114360-25240.jpg?t=st=1736372588~exp=1736376188~hmac=267a604dab1cbff09fbb3b65733df1e6e5b0b135ab3b967467ca978a64c439b4&w=1060");
-        background-size: cover;
+        background-size: contain;
         background-repeat: no-repeat;
         background-attachment: fixed;
         background-position: center;
