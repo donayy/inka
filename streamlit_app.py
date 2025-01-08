@@ -445,7 +445,7 @@ try:
             st.write("Tür için bir şeyler yazmaya başlayın...")
         
     
-    elif page == "Yönetmen Seçimine Gör":
+    elif page == "Yönetmen Seçimine Göre":
         director = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
         if director:
             recommendations = director_based_recommender_tmdb_f(director, df)
