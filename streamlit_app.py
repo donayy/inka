@@ -398,15 +398,15 @@ st.markdown(
 try:
     df = load_data()
 
-    st.sidebar.title("Menu")
+    st.sidebar.title("Film Öneri Seçenekleri")
     page = st.sidebar.radio(
-    "Menu",  # Başlık
-    options=["En Beğenilen Filmler", "Tür Bazlı Tavsiye", "Yönetmen Bazlı Tavsiye",
-             "Oyuncu Bazlı Tavsiye", "Filme Göre Tavsiye", "İçerik Bazlı Tavsiye",
-             "Ruh Haline Göre Tavsiye", "Hakkında"])
+    "Hangi türde öneri istiyorsunuz?", 
+    options=["Popüler Filmler", "Türe Göre Öneriler", "Yönetmen Seçimine Göre",
+             "Oyuncu Seçimine Göre", "Film Benzeri Öneriler", "Anahtar Kelimelere Göre",
+             "Ruh Hali Önerileri", "Hakkımızda"])
 
 
-    if page == "En Beğenilen Filmler":
+    if page == "Popüler Filmler":
         if st.button("En beğenilen 10 film için tıklayın"):
             recommendations_simple = simple_recommender_tmdb(df)
             for _, row in recommendations_simple.iterrows():
@@ -416,7 +416,7 @@ try:
                 else:
                     st.write("Poster bulunamadı.")
 
-    elif page == "Tür Bazlı Tavsiye":
+    elif page == "Türe Göre Öneriler":
         df['genres'] = df['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
         all_genres = sorted(set(genre.strip().lower() for genres in df['genres'] for genre in genres))
 
@@ -445,7 +445,7 @@ try:
             st.write("Tür için bir şeyler yazmaya başlayın...")
         
     
-    elif page == "Yönetmen Bazlı Tavsiye":
+    elif page == "Yönetmen Seçimine Gör":
         director = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
         if director:
             recommendations = director_based_recommender_tmdb_f(director, df)
@@ -454,34 +454,34 @@ try:
             else:
                 st.write(recommendations)
                 
-    elif page == "Oyuncu Bazlı Tavsiye":
+    elif page == "Oyuncu Seçimine Göre":
         cast_name = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale):")
         if cast_name:
             recommendations = cast_based_recommender_tmdb_f(df, cast_name)
             st.table(recommendations)
 
     
-    elif page == "Filme Göre Tavsiye":
+    elif page == "Film Benzeri Öneriler":
         movie_title = st.text_input("Bir film ismi girin (örneğin, Inception):")
         if movie_title:
             recommendations = content_based_recommender(movie_title, df)
             st.table(recommendations)
 
 
-    elif page == "İçerik Bazlı Tavsiye":
+    elif page == "Anahtar Kelimelere Göre":
         keyword = st.text_input("Bir kelime girin (örneğin, Christmas):")
         if keyword:
             recommendations = keyword_based_recommender(keyword, df)
             st.table(recommendations)
 
-    elif page == "Ruh Haline Göre Tavsiye":
+    elif page == "Ruh Hali Önerileri":
         mood = st.text_input("Bir ruh hali girin (örneğin, happy, sad):")
         if mood:
             recommendations = mood_based_recommender(mood, df)
             st.table(recommendations)
 
-    elif page == "Hakkında":
-        st.title("Hakkında")
+    elif page == "Hakkımızda":
+        st.title("Hakkımızda")
         st.write("""
         **I.N.K.A.** (Intelligent Network for Kinematic Advice), kullanıcıların ruh haline, tercih ettikleri türlere, 
         yönetmenlere veya anahtar kelimelere göre film önerileri sunan yenilikçi bir film tavsiye sistemidir. 
