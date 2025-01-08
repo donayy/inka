@@ -44,7 +44,8 @@ def simple_recommender_tmdb(df, percentile=0.95):
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + 
                   (m / (m + x['numVotes']) * C), axis=1)
     qualified = qualified.sort_values('wr', ascending=False)
-    return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
+    return qualified.head(10)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
+
 
 
 # Genre-based recommender function
