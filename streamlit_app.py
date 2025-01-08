@@ -109,40 +109,30 @@ def get_genre_suggestions(partial_input, all_genres):
 
 # Director-based recommender function
 def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
-    # Sütun Kontrolü
     if 'numVotes' not in dataframe.columns or 'averageRating' not in dataframe.columns or 'directors' not in dataframe.columns:
         return "Hata: Gerekli sütunlar eksik. 'numVotes', 'averageRating', veya 'directors' sütunlarını kontrol edin."
 
-    # Normalize 'directors' column
     dataframe['directors'] = dataframe['directors'].fillna('').astype(str)
     
-    # Mevcut yönetmenleri listele
     all_directors = sorted(dataframe['directors'].unique())
 
-    # Kullanıcı girişine uygun öneriler
     closest_match = difflib.get_close_matches(director.lower(), [d.lower() for d in all_directors], n=1, cutoff=0.8)
     if not closest_match:
         return f"'{director}' isimli bir yönetmen bulunamadı. Lütfen başka bir isim deneyin."
     
-    # Eşleşen yönetmeni büyük-küçük harf duyarlı olarak bul
     closest_match = next(d for d in all_directors if d.lower() == closest_match[0])
 
-    # Yönetmene göre filtrele
     df = dataframe[dataframe['directors'] == closest_match]
     if df.empty:
         return f"'{closest_match}' isimli yönetmenin yeterli filmi bulunamadı."
 
-    # Ağırlıklı puan hesaplama
     num_votes = df[df['numVotes'].notnull()]['numVotes'].astype('int')
     vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('float')
     C = vote_averages.mean()
     m = num_votes.quantile(percentile)
     
-    qualified = df[(df['numVotes'] >= m) & (df['averageRating'].notnull())][
-        ['title', 'averageRating', 'poster_url']]
-    qualified['wr'] = qualified.apply(
-        lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) +
-                  (m / (m + x['numVotes']) * C), axis=1)
+    qualified = df[(df['numVotes'] >= m) & (df['averageRating'].notnull())][['title', 'averageRating', 'poster_url']]
+    qualified['wr'] = qualified.apply(lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + (m / (m + x['numVotes']) * C), axis=1)
     qualified = qualified.sort_values('wr', ascending=False).head(10)
     
     return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
