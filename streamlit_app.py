@@ -7,7 +7,7 @@ DATA_URL = "https://raw.githubusercontent.com/donayy/inka/main/movies_short.csv"
 @st.cache_data
 def load_data(url):
     try:
-        data = pd.read_csv(url, encoding="utf-8")  # Alternatif encoding: "latin1"
+        data = pd.read_csv(url, encoding="utf-8", error_bad_lines=False, warn_bad_lines=True)  # Hatalı satırları atlar
         return data
     except Exception as e:
         st.error(f"Veri yüklenirken bir hata oluştu: {e}")
