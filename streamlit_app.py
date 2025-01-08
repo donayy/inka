@@ -1,59 +1,55 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
-from rapidfuzz import fuzz, process  # For better fuzzy matching
+from rapidfuzz import fuzz, process  
 import difflib
 
-# Verisetinin GitHub URL'si
+# GitHub URL of dataset
 DATA_URL = "https://raw.githubusercontent.com/donayy/inka/refs/heads/main/movies_dataset.csv"
-POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"  # Base URL for TMDB poster images
+# Base URL for TMDB poster images
+POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"  
 
 
 @st.cache_data
 def load_data():
-    # Belirli sütunları yükleyin (gerekli sütunları seçin)
-    usecols = ['title', 'genres', 'keywords', 'vote_count', 'vote_average', 'popularity', 
-               'release_date', 'directors', 'cast', 'overview', 'backdrop_path']
+    # Load dataset
+    df = pd.read_csv(DATA_URL, on_bad_lines="skip")
     
-    df = pd.read_csv(DATA_URL, usecols=usecols, on_bad_lines="skip", dtype={
-        'title': 'string', 
-        'genres': 'string',
-        'keywords': 'string',
-        'vote_count': 'float',
-        'vote_average': 'float',
-        'popularity': 'float',
-        'release_date': 'string',
-        'directors': 'string',
-        'cast': 'string',
-        'overview': 'string',
-        'backdrop_path': 'string'
-    })
+    # Normalize the genres column
+    if 'genres' in df.columns:
+        df['genres'] = df['genres'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
+    else:
+        st.error("'genres' kolonu bulunamadı. Lütfen verinizi kontrol edin.")
+        return pd.DataFrame()  # return an empty dataset
     
-    # Gerekli işlemleri yapın
-    df['genres'] = df['genres'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
+    # Normalize the keywords and overview columns
     df['keywords'] = df['keywords'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
     df['overview'] = df['overview'].fillna('').astype(str)
-    df['poster_url'] = df['backdrop_path'].apply(lambda x: f"{POSTER_BASE_URL}{x}" if pd.notnull(x) else None)
+    df['keywords'] = df['keywords'].fillna('').astype(str)
+    
+    # Generate Poster URL
+    if 'backdrop_path' in df.columns:
+        df['poster_url'] = df['backdrop_path'].apply(lambda x: f"{POSTER_BASE_URL}{x}" if pd.notnull(x) else None)
     
     return df
 
 
 # Simple recommender function
 def simple_recommender_tmdb(df, percentile=0.95):
-    vote_counts = df[df['vote_count'].notnull()]['vote_count'].astype('int')
-    vote_averages = df[df['vote_average'].notnull()]['vote_average'].astype('int')
+    numVotess = df[df['numVotes'].notnull()]['numVotes'].astype('int')
+    vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('int')
     C = vote_averages.mean()
-    m = vote_counts.quantile(percentile)
+    m = numVotess.quantile(percentile)
     df['year'] = pd.to_datetime(df['release_date'], errors='coerce').apply(lambda x: str(x).split('-')[0] if x != np.nan else np.nan)
-    qualified = df[(df['vote_count'] >= m) & (df['vote_count'].notnull()) & (df['vote_average'].notnull())][
-        ['title', 'year', 'vote_count', 'vote_average', 'popularity', 'poster_url']]
-    qualified['vote_count'] = qualified['vote_count'].astype('int')
-    qualified['vote_average'] = qualified['vote_average'].astype('int')
+    qualified = df[(df['numVotes'] >= m) & (df['numVotes'].notnull()) & (df['averageRating'].notnull())][
+        ['title', 'year', 'numVotes', 'averageRating', 'popularity', 'poster_url']]
+    qualified['numVotes'] = qualified['numVotes'].astype('int')
+    qualified['averageRating'] = qualified['averageRating'].astype('int')
     qualified['wr'] = qualified.apply(
-        lambda x: (x['vote_count'] / (x['vote_count'] + m) * x['vote_average']) + 
-                  (m / (m + x['vote_count']) * C), axis=1)
+        lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + 
+                  (m / (m + x['numVotes']) * C), axis=1)
     qualified = qualified.sort_values('wr', ascending=False)
-    return qualified.head(10)[['title', 'vote_average', 'wr', 'poster_url']].reset_index(drop=True)
+    return qualified.head(10)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
 
 
 # Genre-based recommender function
@@ -81,28 +77,28 @@ def genre_based_recommender_tmbd_f(df, genre, percentile=0.90):
         return f"No movies found for the genre: {closest_match}"
 
     # Calculate weighted rating
-    vote_counts = df_filtered[df_filtered['vote_count'].notnull()]['vote_count'].astype('int')
-    vote_averages = df_filtered[df_filtered['vote_average'].notnull()]['vote_average'].astype('int')
+    numVotess = df_filtered[df_filtered['numVotes'].notnull()]['numVotes'].astype('int')
+    vote_averages = df_filtered[df_filtered['averageRating'].notnull()]['averageRating'].astype('int')
     C = vote_averages.mean()
-    m = vote_counts.quantile(percentile)
+    m = numVotess.quantile(percentile)
 
-    qualified = df_filtered[(df_filtered['vote_count'] >= m) &
-                            (df_filtered['vote_count'].notnull()) &
-                            (df_filtered['vote_average'].notnull())][
-        ['title', 'vote_count', 'vote_average', 'popularity']]
+    qualified = df_filtered[(df_filtered['numVotes'] >= m) &
+                            (df_filtered['numVotes'].notnull()) &
+                            (df_filtered['averageRating'].notnull())][
+        ['title', 'numVotes', 'averageRating', 'popularity']]
     if qualified.empty:
         return f"No qualified movies found for the genre: {closest_match}"
 
-    qualified['vote_count'] = qualified['vote_count'].astype('int')
-    qualified['vote_average'] = qualified['vote_average'].astype('int')
+    qualified['numVotes'] = qualified['numVotes'].astype('int')
+    qualified['averageRating'] = qualified['averageRating'].astype('int')
     qualified['wr'] = qualified.apply(
-        lambda x: (x['vote_count'] / (x['vote_count'] + m) * x['vote_average']) +
-                  (m / (m + x['vote_count']) * C),
+        lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) +
+                  (m / (m + x['numVotes']) * C),
         axis=1
     )
 
     qualified = qualified.drop_duplicates(subset='title')
-    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'vote_average', 'wr']].reset_index(drop=True)
+    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating']].reset_index(drop=True)
 
 
 # Director-based recommender function
@@ -113,19 +109,19 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
         return f"Warning: {director} isimli bir yönetmen bulunamadı."
     closest_match = closest_match[0]
     df = dataframe[dataframe['directors'] == closest_match]
-    vote_counts = df[df['vote_count'].notnull()]['vote_count'].astype('int')
-    vote_averages = df[df['vote_average'].notnull()]['vote_average'].astype('int')
+    numVotess = df[df['numVotes'].notnull()]['numVotes'].astype('int')
+    vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('int')
     C = vote_averages.mean()
-    m = vote_counts.quantile(percentile)
-    qualified = df[(df['vote_count'] >= m) & (df['vote_count'].notnull()) & 
-                   (df['vote_average'].notnull())][['title', 'vote_count', 'vote_average', 'popularity']]
-    qualified['vote_count'] = qualified['vote_count'].astype('int')
-    qualified['vote_average'] = qualified['vote_average'].astype('int')
+    m = numVotess.quantile(percentile)
+    qualified = df[(df['numVotes'] >= m) & (df['numVotes'].notnull()) & 
+                   (df['averageRating'].notnull())][['title', 'numVotes', 'averageRating', 'popularity']]
+    qualified['numVotes'] = qualified['numVotes'].astype('int')
+    qualified['averageRating'] = qualified['averageRating'].astype('int')
     qualified['wr'] = qualified.apply(
-        lambda x: (x['vote_count'] / (x['vote_count'] + m) * x['vote_average']) + (m / (m + x['vote_count']) * C),
+        lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + (m / (m + x['numVotes']) * C),
         axis=1)
     qualified = qualified.drop_duplicates(subset='title')
-    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'vote_average', 'wr']].reset_index(drop=True)
+    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating']].reset_index(drop=True)
 
 # Cast-based recommender function
 def preprocess_cast_column(df):
@@ -139,20 +135,20 @@ def cast_based_recommender_tmdb_f(df, cast_name, percentile=0.90):
     df_cast = df[df[cast_columns].apply(lambda x: x.str.contains(cast_name, na=False).any(), axis=1)]
     if df_cast.empty:
         return f"{cast_name} için film bulunamadı."
-    vote_counts = df_cast[df_cast['vote_count'].notnull()]['vote_count'].astype('int')
-    vote_averages = df_cast[df_cast['vote_average'].notnull()]['vote_average'].astype('int')
+    numVotess = df_cast[df_cast['numVotes'].notnull()]['numVotes'].astype('int')
+    vote_averages = df_cast[df_cast['averageRating'].notnull()]['averageRating'].astype('int')
     C = vote_averages.mean()
-    m = vote_counts.quantile(percentile)
-    qualified = df_cast[(df_cast['vote_count'] >= m) &
-                        (df_cast['vote_count'].notnull()) &
-                        (df_cast['vote_average'].notnull())][
-        ['title', 'vote_count', 'vote_average', 'popularity']]
+    m = numVotess.quantile(percentile)
+    qualified = df_cast[(df_cast['numVotes'] >= m) &
+                        (df_cast['numVotes'].notnull()) &
+                        (df_cast['averageRating'].notnull())][
+        ['title', 'numVotes', 'averageRating', 'popularity']]
     qualified['wr'] = qualified.apply(
-        lambda x: (x['vote_count'] / (x['vote_count'] + m) * x['vote_average']) + (
-                    m / (m + x['vote_count']) * C),
+        lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + (
+                    m / (m + x['numVotes']) * C),
         axis=1)
     qualified = qualified.drop_duplicates(subset='title')
-    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'vote_average', 'wr']].reset_index(drop=True)
+    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating']].reset_index(drop=True)
 
 # Keyword-based recommender function
 def keyword_based_recommender(keyword, dataframe, top_n=10):
@@ -168,7 +164,9 @@ def keyword_based_recommender(keyword, dataframe, top_n=10):
         dataframe['keywords'].str.lower().str.contains(keyword, na=False)
     ]
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
-    return filtered_df.head(top_n)[['title']]
+
+    return filtered_df.head(top_n)[['title']].reset_index(drop=True)
+
 
 
 # Content-based recommender using Jaccard similarity
@@ -180,7 +178,7 @@ def jaccard_similarity(set1, set2):
 def jaccard_based_recommender(title, dataframe, top_n=10):
     target_movie = dataframe[dataframe['title'] == title]
     if target_movie.empty:
-        return []
+        return pd.DataFrame(columns=['title', 'score'])
 
     target_movie = target_movie.iloc[0]
     target_genres = set(target_movie['genres']) if isinstance(target_movie['genres'], list) else set(str(target_movie['genres']).split(','))
@@ -194,10 +192,11 @@ def jaccard_based_recommender(title, dataframe, top_n=10):
             genre_score = jaccard_similarity(target_genres, genres)
             keyword_score = jaccard_similarity(target_keywords, keywords)
             total_score = genre_score * 0.7 + keyword_score * 0.3
-            scores.append((row['title'], total_score))
+            scores.append({'title': row['title'], 'score': total_score})
 
-    scores = sorted(scores, key=lambda x: x[1], reverse=True)
-    return [title for title, score in scores[:top_n]]
+    sorted_scores = sorted(scores, key=lambda x: x['score'], reverse=True)[:top_n]
+
+    return pd.DataFrame(sorted_scores).reset_index(drop=True)
 
 # Mood-based recommender function
 mood_to_genre = {
@@ -221,7 +220,7 @@ def mood_based_recommender(mood, dataframe, top_n=10):
     
     # Sort by popularity and return the top results
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
-    return filtered_df.head(top_n)[['title', 'genres']].reset_index(drop=True)
+    return filtered_df.head(top_n)[['title']].reset_index(drop=True)
     
 # Streamlit App
 st.title("Inka & Chill 🎥")
@@ -234,7 +233,7 @@ try:
     if st.button("En Beğenilen 10 Film"):
         recommendations_simple = simple_recommender_tmdb(df)
         for _, row in recommendations_simple.iterrows():
-            st.write(f"**{row['title']}** (Rating: {row['vote_average']})")
+            st.write(f"**{row['title']}** (Rating: {row['averageRating']})")
             if row['poster_url']:
                 st.image(row['poster_url'], width=150)
             else:
