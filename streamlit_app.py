@@ -70,20 +70,20 @@ def genre_based_recommender_tmbd_f(df, genre, percentile=0.90):
     return qualified[['title', 'vote_average', 'wr']].reset_index(drop=True)
 
 # Uygulama başlıyor
-st.title("Inka ve Chill 🎥")
-st.write("TMDB tabanlı önerici sistem.")
+st.title("Inka & Chill 🎥")
+st.write("Ne izlesek?")
 
 try:
     df = load_data()
 
     # Simple Recommender Başlangıç
-    if st.button("En İyi 10 Film (Simple Recommender)"):
+    st.write("Öncelikle şunları önerebilirim:")
+    if st.button("En Beğenilen 10 Film"):
         recommendations_simple = simple_recommender_tmdb(df)
-        st.write("En İyi 10 Film:")
         st.table(recommendations_simple)
 
     # Genre-Based Recommender Başlangıç
-    genre_input = st.text_input("Bir tür girin (örneğin, Action, Drama, Comedy):")
+    genre_input = st.text_input("Dilerseniz türe göre arama yapalım. Bir tür girin (örneğin, Action, Drama, Comedy):")
     if genre_input:
         recommendations_genre = genre_based_recommender_tmbd_f(df, genre_input)
         if not recommendations_genre.empty:
