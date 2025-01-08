@@ -171,7 +171,7 @@ def jaccard_similarity(set1, set2):
     union = len(set1.union(set2))
     return intersection / union if union != 0 else 0
 
-def jaccard_based_recommender(title, dataframe, top_n=10):
+def content_based_recommender(title, dataframe, top_n=10):
     target_movie = dataframe[dataframe['title'] == title]
     if target_movie.empty:
         return pd.DataFrame(columns=['title', 'score'])
