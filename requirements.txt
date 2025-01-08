@@ -1,3 +1,6 @@
-pandas==2.2.3
-streamlit==1.41.1
-rapidfuzz
+pandas>=1.3.0
+numpy>=1.19.0
+streamlit>=1.15.0
+rapidfuzz>=2.1.0
+difflib
+
