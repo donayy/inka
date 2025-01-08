@@ -147,6 +147,11 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
     
     return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
 
+def get_director_suggestions(partial_input, all_directors):
+    partial_input = partial_input.lower()
+    suggestions = [director for director in all_directors if partial_input in director.lower()]
+    return suggestions
+
 # Cast-based recommender function
 def preprocess_cast_column(df):
     cast_columns = df['cast'].str.split(',', expand=True)
@@ -475,34 +480,37 @@ try:
         
     
     elif page == "Yönetmen Seçimine Göre":
-        st.write("Yönetmen Bazlı Öneriler")
+        st.title("Yönetmen Bazlı Öneriler")
+        all_directors = sorted(set(df['directors'].dropna().unique()))
+
         director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
-    
+
         if director_input:
-            director_suggestions = difflib.get_close_matches(director_input, df['directors'].dropna().unique(), n=5, cutoff=0.6)
-        
-            if director_suggestions:
-                st.write("Benzer Yönetmenler:")
-                for suggestion in director_suggestions:
+            suggestions = get_director_suggestions(director_input, all_directors)
+
+            if suggestions:
+                st.write("Yönetmen Önerileri:")
+                for suggestion in suggestions[:5]:  
                     st.write(f"- {suggestion}")
-            
-                closest_match = director_suggestions[0]
+
+                closest_match = suggestions[0]
                 recommendations = director_based_recommender_tmdb_f(closest_match, df)
 
-                if isinstance(recommendations, pd.DataFrame):
-                    st.write(f"'{closest_match}' yönetimindeki öneriler:")
+                if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
+                    st.write(f"'{closest_match}' yönetmenine ait öneriler:")
                     for _, row in recommendations.iterrows():
-                        st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
+                        st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']})")
                         if row['poster_url']:
-                            st.image(row['poster_url'], width=250)
+                            st.image(row['poster_url'], width=200)
                         else:
                             st.write("Poster bulunamadı.")
                 else:
-                    st.write(recommendations)
+                    st.write(f"'{closest_match}' yönetmeni için yeterli veri bulunamadı.")
             else:
-                st.write(f"'{director_input}' ile eşleşen yönetmen bulunamadı. Lütfen başka bir isim deneyin.")
+                st.write(f"'{director_input}' ile başlayan bir yönetmen bulunamadı. Lütfen başka bir isim deneyin.")
         else:
-            st.write("Yönetmen ismini yazmaya başlayın...")
+            st.write("Bir yönetmen ismi yazmaya başlayın...")
+
 
                 
     elif page == "Oyuncu Seçimine Göre":
