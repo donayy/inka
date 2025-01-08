@@ -162,14 +162,21 @@ mood_to_genre = {
 }
 
 def mood_based_recommender(mood, dataframe, top_n=10):
+    # Get genres related to the mood
     genres = mood_to_genre.get(mood.lower(), [])
     if not genres:
         return f"No genres found for mood: {mood}"
-    filtered_df = dataframe[dataframe['genres'].apply(lambda x: any(g in genres for g in x))]
+    
+    # Ensure 'genres' is processed as a list
+    dataframe['genres'] = dataframe['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
+    
+    # Filter movies where any genre matches the mood genres
+    filtered_df = dataframe[dataframe['genres'].apply(lambda x: any(g.strip().lower() in genres for g in x))]
+    
+    # Sort by popularity and return the top results
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
     return filtered_df.head(top_n)[['title', 'genres']].reset_index(drop=True)
-
-
+    
 # Streamlit App
 st.title("Inka & Chill 🎥")
 st.write("Ne izlesek?")
