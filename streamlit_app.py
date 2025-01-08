@@ -109,26 +109,23 @@ def get_genre_suggestions(partial_input, all_genres):
 
 # Director-based recommender function
 def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
-    if 'numVotes' not in dataframe.columns or 'averageRating' not in dataframe.columns or 'directors' not in dataframe.columns:
-        return "Hata: Gerekli sütunlar eksik. 'numVotes', 'averageRating', veya 'directors' sütunlarını kontrol edin."
 
-    dataframe['directors'] = dataframe['directors'].fillna('').astype(str)
-    
+    director = director.strip().lower()
+    dataframe['directors'] = dataframe['directors'].fillna('').str.strip().str.lower()
+
     all_directors = sorted(dataframe['directors'].unique())
 
-    closest_match = difflib.get_close_matches(director.lower(), [d.lower() for d in all_directors], n=1, cutoff=0.8)
-    if not closest_match:
-        return f"'{director}' isimli bir yönetmen bulunamadı. Lütfen başka bir isim deneyin."
-    
-    closest_match = next(d for d in all_directors if d.lower() == closest_match[0])
+    suggestions = [d for d in all_directors if director in d]
+    if not suggestions:
+        return f"'{director}' ile eşleşen bir yönetmen bulunamadı."
+
+    closest_match = suggestions[0]
 
     df = dataframe[dataframe['directors'] == closest_match]
     if df.empty:
-        return f"'{closest_match}' isimli yönetmenin yeterli filmi bulunamadı."
+        return f"'{closest_match}' yönetmenine ait yeterli veri bulunamadı."
 
-    if 'numVotes' not in df.columns:
-        return f"'{closest_match}' yönetmenine ait 'numVotes' sütunu bulunamadı. Lütfen veriyi kontrol edin."
-
+    # Ağırlıklı puan hesaplama
     num_votes = df[df['numVotes'].notnull()]['numVotes'].astype('int')
     vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('float')
     C = vote_averages.mean()
@@ -145,10 +142,12 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
 
 
 
+
 def get_director_suggestions(partial_input, all_directors):
     partial_input = partial_input.lower()
-    suggestions = [director for director in all_directors if partial_input in director.lower()]
+    suggestions = [d for d in all_directors if partial_input in d]
     return suggestions
+
 
 # Cast-based recommender function
 def preprocess_cast_column(df):
@@ -478,36 +477,32 @@ try:
         
     
     elif page == "Yönetmen Seçimine Göre":
-        st.title("Yönetmen Bazlı Öneriler")
         all_directors = sorted(set(df['directors'].dropna().unique()))
-
         director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
 
         if director_input:
             suggestions = get_director_suggestions(director_input, all_directors)
 
             if suggestions:
-                st.write("Yönetmen Önerileri:")
+                st.write("Önerilen Yönetmenler:")
                 for suggestion in suggestions[:5]:  
-                    st.write(f"- {suggestion}")
+                    st.write(f"- {suggestion.capitalize()}")
 
                 closest_match = suggestions[0]
                 recommendations = director_based_recommender_tmdb_f(closest_match, df)
 
-                if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
-                    st.write(f"'{closest_match}' yönetmenine ait öneriler:")
+                if not recommendations.empty:
+                    st.write(f"'{closest_match.capitalize()}' yönetmenine ait öneriler:")
                     for _, row in recommendations.iterrows():
                         st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']})")
                         if row['poster_url']:
-                            st.image(row['poster_url'], width=200)
+                            st.image(row['poster_url'], width=150)
                         else:
                             st.write("Poster bulunamadı.")
                 else:
-                    st.write(f"'{closest_match}' yönetmeni için yeterli veri bulunamadı.")
+                    st.write(f"'{closest_match}' yönetmenine ait öneri bulunamadı.")
             else:
-                st.write(f"'{director_input}' ile başlayan bir yönetmen bulunamadı. Lütfen başka bir isim deneyin.")
-        else:
-            st.write("Bir yönetmen ismi yazmaya başlayın...")
+                st.write(f"'{director_input}' ile başlayan bir yönetmen bulunamadı.")
 
 
                 
