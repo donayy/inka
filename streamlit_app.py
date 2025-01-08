@@ -23,7 +23,7 @@ def load_data():
     df['keywords'] = df['keywords'].fillna('').astype(str)
     
     # Add full poster URL column
-    df['poster_url'] = df['poster_path'].apply(lambda x: f"{POSTER_BASE_URL}{x}" if pd.notnull(x) else None)
+    df['poster_url'] = df['backdrop_path'].apply(lambda x: f"{POSTER_BASE_URL}{x}" if pd.notnull(x) else None)
     
     return df
 
