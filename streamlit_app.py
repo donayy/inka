@@ -125,22 +125,22 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
         return f"'{closest_match}' yönetmeni için yeterli veri bulunamadı."
     
     # Calculate weighted rating
-    vote_counts = df['vote_count'].dropna().astype('int')
-    vote_averages = df['vote_average'].dropna().astype('float')
+    vote_counts = df['numVotes'].dropna().astype('int')
+    vote_averages = df['averageRating'].dropna().astype('float')
     if vote_counts.empty or vote_averages.empty:
         return f"'{closest_match}' yönetmeni için oy bilgisi eksik."
     
     C = vote_averages.mean()
     m = vote_counts.quantile(percentile)
     
-    qualified = df[(df['vote_count'] >= m) & (df['vote_average'].notnull())][
-        ['title', 'vote_average', 'poster_url']]
+    qualified = df[(df['numVotes'] >= m) & (df['averageRating'].notnull())][
+        ['title', 'averageRating', 'poster_url']]
     qualified['wr'] = qualified.apply(
-        lambda x: (x['vote_count'] / (x['vote_count'] + m) * x['vote_average']) +
-                  (m / (m + x['vote_count']) * C), axis=1)
+        lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) +
+                  (m / (m + x['numVotes']) * C), axis=1)
     
     qualified = qualified.sort_values('wr', ascending=False).head(10)
-    return qualified[['title', 'vote_average', 'poster_url']].reset_index(drop=True)
+    return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
 
 
 
@@ -486,9 +486,9 @@ try:
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
                 st.write(f"'{director_input}' yönetmeninden öneriler:")
                 for _, row in recommendations.iterrows():
-                    st.write(f"**{row['title']}** (IMDB Rating: {row['vote_average']})")
+                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']})")
                     if row['poster_url']:
-                        st.image(row['poster_url'], width=200)
+                        st.image(row['poster_url'], width=500)
                     else:
                         st.write("Poster bulunamadı.")
             else:
