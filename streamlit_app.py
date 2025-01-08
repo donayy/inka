@@ -275,30 +275,33 @@ try:
     elif page == "Tür Bazlı Tavsiye":
         st.write("Tür Bazlı Tavsiye")
 
-        # Normalize genres column once
         df['genres'] = df['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
         all_genres = sorted(set(genre.strip().lower() for genres in df['genres'] for genre in genres))
-
 
         genre_input = st.text_input("Bir tür girin (örneğin, Action):")
 
         if genre_input:
+
             suggestions = get_genre_suggestions(genre_input, all_genres)
+
             if suggestions:
                 st.write("Öneriler:")
-                for suggestion in suggestions[:5]:
+                for suggestion in suggestions[:5]:  
                     st.write(f"- {suggestion.capitalize()}")
-        
-            closest_match = suggestions[0] if suggestions else genre_input
-            recommendations = genre_based_recommender_tmbd_f(df, closest_match)
-            
-            if not recommendations.empty:
-                st.write(f"'{closest_match.capitalize()}' türündeki öneriler:")
-                st.table(recommendations)
+
+                closest_match = suggestions[0]
+                recommendations = genre_based_recommender_tmbd_f(df, closest_match)
+
+                if not recommendations.empty:
+                    st.write(f"'{closest_match.capitalize()}' türündeki öneriler:")
+                    st.table(recommendations)
+                else:
+                    st.write(f"'{closest_match}' türünde yeterli film bulunamadı.")
             else:
-                st.write(f"'{closest_match}' türünde yeterli film bulunamadı.")
+                st.write(f"'{genre_input}' ile başlayan tür bulunamadı. Lütfen başka bir tür deneyin.")
         else:
             st.write("Tür için bir şeyler yazmaya başlayın...")
+        
     
     elif page == "Yönetmen Bazlı Tavsiye":
         st.write("Yönetmen Bazlı Tavsiye")
