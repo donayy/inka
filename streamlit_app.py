@@ -362,7 +362,6 @@ st.markdown(
 )
 
 
-
 try:
     df = load_data()
 
@@ -464,8 +463,6 @@ try:
         - IMDB derecelendirmeleri ve popülerlik bazlı sıralama.
         
         **Amacımız:** I.N.K.A. ile herkes için doğru filmi bulmak ve keyifli bir sinema deneyimi yaşatmak!""")
-
-
 
 except Exception as e:
     st.error(f"Bir hata oluştu: {e}")
