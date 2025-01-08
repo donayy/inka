@@ -73,28 +73,34 @@ def genre_based_recommender_tmbd_f(df, genre, percentile=0.90):
         return f"No movies found for the genre: {closest_match}"
 
     # Calculate weighted rating
-    numVotess = df_filtered[df_filtered['numVotes'].notnull()]['numVotes'].astype('int')
-    vote_averages = df_filtered[df_filtered['averageRating'].notnull()]['averageRating'].astype('int')
+    num_votes = df_filtered[df_filtered['numVotes'].notnull()]['numVotes'].astype('int')
+    vote_averages = df_filtered[df_filtered['averageRating'].notnull()]['averageRating'].astype('float')
     C = vote_averages.mean()
-    m = numVotess.quantile(percentile)
+    m = num_votes.quantile(percentile)
 
     qualified = df_filtered[(df_filtered['numVotes'] >= m) &
                             (df_filtered['numVotes'].notnull()) &
                             (df_filtered['averageRating'].notnull())][
-        ['title', 'numVotes', 'averageRating', 'popularity']]
+        ['title', 'numVotes', 'averageRating', 'poster_url']]
+    
     if qualified.empty:
         return f"No qualified movies found for the genre: {closest_match}"
 
     qualified['numVotes'] = qualified['numVotes'].astype('int')
-    qualified['averageRating'] = qualified['averageRating'].astype('int')
+    qualified['averageRating'] = qualified['averageRating'].astype('float')
     qualified['wr'] = qualified.apply(
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) +
                   (m / (m + x['numVotes']) * C),
         axis=1
     )
 
+    # Sort by weighted rating and drop duplicates
     qualified = qualified.drop_duplicates(subset='title')
-    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating']].reset_index(drop=True)
+    qualified = qualified.sort_values('wr', ascending=False)
+
+    # Return the top 10 movies
+    return qualified.head(10).reset_index(drop=True)
+
     
 def get_genre_suggestions(partial_input, all_genres):
     partial_input = partial_input.lower()
@@ -327,7 +333,7 @@ st.markdown(
         margin-bottom: 20px;
     }
     </style>
-    <div class="center-title">Inka & Chill 🎥 </div>
+    <div class="center-title">I.N.K.A. & Chill 🎥 </div>
     <div class="page-title">Ne izlesek?</div>
     """,
     unsafe_allow_html=True
@@ -423,7 +429,6 @@ try:
         genre_input = st.text_input("Bir tür girin (örneğin, Action):")
 
         if genre_input:
-
             suggestions = get_genre_suggestions(genre_input, all_genres)
 
             if suggestions:
@@ -434,15 +439,21 @@ try:
                 closest_match = suggestions[0]
                 recommendations = genre_based_recommender_tmbd_f(df, closest_match)
 
-                if not recommendations.empty:
+                if isinstance(recommendations, pd.DataFrame):
                     st.write(f"'{closest_match.capitalize()}' türündeki öneriler:")
-                    st.table(recommendations)
+                    for _, row in recommendations.iterrows():
+                        st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
+                        if row['poster_url']:
+                            st.image(row['poster_url'], width=250)
+                        else:
+                            st.write("Poster bulunamadı.")
                 else:
-                    st.write(f"'{closest_match}' türünde yeterli film bulunamadı.")
+                    st.write(recommendations)
             else:
                 st.write(f"'{genre_input}' ile başlayan tür bulunamadı. Lütfen başka bir tür deneyin.")
         else:
             st.write("Tür için bir şeyler yazmaya başlayın...")
+
         
     
     elif page == "Yönetmen Seçimine Göre":
