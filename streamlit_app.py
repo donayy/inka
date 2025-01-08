@@ -315,6 +315,33 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+st.markdown(
+    """
+    <style>
+    /* Sidebar Arka Plan Rengi ve Yazı Stilleri */
+    [data-testid="stSidebar"] {
+        background-color: #333333; /* Koyu Antrasit */
+        color: #FFFFFF; /* Beyaz */
+    }
+    /* Sidebar Yazı Font Boyutu ve Renk */
+    [data-testid="stSidebar"] .css-1v3fvcr {
+        font-size: 18px; /* Daha büyük font */
+        color: #FFFFFF; /* Beyaz */
+    }
+    /* Sidebar'daki başlık yazıları */
+    [data-testid="stSidebar"] h2 {
+        font-size: 22px; /* Başlık boyutunu artır */
+        color: #FFD700; /* Altın sarısı */
+    }
+    /* Sidebar'daki alt yazılar */
+    [data-testid="stSidebar"] p {
+        font-size: 16px; /* Alt yazı boyutu */
+        color: #FFFFFF; /* Beyaz */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
 try:
