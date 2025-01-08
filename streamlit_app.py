@@ -126,16 +126,23 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
     if df.empty:
         return f"'{closest_match}' isimli yönetmenin yeterli filmi bulunamadı."
 
+    if 'numVotes' not in df.columns:
+        return f"'{closest_match}' yönetmenine ait 'numVotes' sütunu bulunamadı. Lütfen veriyi kontrol edin."
+
     num_votes = df[df['numVotes'].notnull()]['numVotes'].astype('int')
     vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('float')
     C = vote_averages.mean()
     m = num_votes.quantile(percentile)
     
-    qualified = df[(df['numVotes'] >= m) & (df['averageRating'].notnull())][['title', 'averageRating', 'poster_url']]
-    qualified['wr'] = qualified.apply(lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + (m / (m + x['numVotes']) * C), axis=1)
+    qualified = df[(df['numVotes'] >= m) & (df['averageRating'].notnull())][
+        ['title', 'averageRating', 'poster_url']]
+    qualified['wr'] = qualified.apply(
+        lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) +
+                  (m / (m + x['numVotes']) * C), axis=1)
     qualified = qualified.sort_values('wr', ascending=False).head(10)
     
     return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
+
 
 
 def get_director_suggestions(partial_input, all_directors):
