@@ -54,27 +54,51 @@ def simple_recommender_tmdb(df, percentile=0.95):
 # Genre-based recommender function
 def genre_based_recommender_tmbd_f(df, genre, percentile=0.90):
     genre = genre.lower()
-    df['genres'] = df['genres'].apply(lambda x: str(x) if isinstance(x, str) else '')
-    df['genres'] = df['genres'].apply(lambda x: [g.strip().lower() for g in x.split(',')] if x else [])
+
+    # Normalize the genres column
+    df['genres'] = df['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
+
+    # Get all unique genres
     all_genres = df['genres'].explode().unique()
-    closest_match = process.extractOne(genre, all_genres, scorer=fuzz.ratio)[0]
+    if not all_genres.size:
+        return "No genres available in the dataset."
+
+    # Find the closest matching genre
+    closest_match = process.extractOne(genre, all_genres, scorer=fuzz.ratio)
+    if closest_match:
+        closest_match = closest_match[0]
+    else:
+        return f"No matching genres found for: {genre}"
+
+    # Filter movies by the matched genre
     df_filtered = df[df['genres'].apply(lambda x: closest_match in x)]
+    if df_filtered.empty:
+        return f"No movies found for the genre: {closest_match}"
+
+    # Calculate weighted rating
     vote_counts = df_filtered[df_filtered['vote_count'].notnull()]['vote_count'].astype('int')
     vote_averages = df_filtered[df_filtered['vote_average'].notnull()]['vote_average'].astype('int')
     C = vote_averages.mean()
     m = vote_counts.quantile(percentile)
+
     qualified = df_filtered[(df_filtered['vote_count'] >= m) &
                             (df_filtered['vote_count'].notnull()) &
                             (df_filtered['vote_average'].notnull())][
         ['title', 'vote_count', 'vote_average', 'popularity']]
+    if qualified.empty:
+        return f"No qualified movies found for the genre: {closest_match}"
+
     qualified['vote_count'] = qualified['vote_count'].astype('int')
     qualified['vote_average'] = qualified['vote_average'].astype('int')
     qualified['wr'] = qualified.apply(
-        lambda x: (x['vote_count'] / (x['vote_count'] + m) * x['vote_average']) + 
+        lambda x: (x['vote_count'] / (x['vote_count'] + m) * x['vote_average']) +
                   (m / (m + x['vote_count']) * C),
-        axis=1)
+        axis=1
+    )
+
     qualified = qualified.drop_duplicates(subset='title')
     return qualified.sort_values('wr', ascending=False).head(10)[['title', 'vote_average', 'wr']].reset_index(drop=True)
+
 
 # Director-based recommender function
 def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
