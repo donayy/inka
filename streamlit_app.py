@@ -278,9 +278,9 @@ try:
 
     # Keyword-Based Recommender
     keyword_input = st.text_input("Bir kelime veya tema girin (örneğin, Christmas):")
-        if keyword_input:
-            try:
-                recommendations_keyword = keyword_based_recommender(keyword_input, df)
+    if keyword_input:
+        try:
+            recommendations_keyword = keyword_based_recommender(keyword_input, df)
             if not recommendations_keyword.empty:
                 st.write(f"'{keyword_input}' ile ilgili öneriler:")
                 st.table(recommendations_keyword)
