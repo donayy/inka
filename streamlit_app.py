@@ -235,14 +235,16 @@ try:
     )
 
     if page == "Simple Recommender":
-        st.title("Simple Recommender")
-        recommendations = simple_recommender_tmdb(df)
-        for _, row in recommendations.iterrows():
+    st.title("Simple Recommender")
+    if st.button("En Beğenilen 10 Film"):
+        recommendations_simple = simple_recommender_tmdb(df)
+        for _, row in recommendations_simple.iterrows():
             st.write(f"**{row['title']}** (Rating: {row['averageRating']})")
             if row['poster_url']:
                 st.image(row['poster_url'], width=150)
             else:
                 st.write("Poster bulunamadı.")
+
 
     elif page == "Genre-Based Recommender":
         st.title("Genre-Based Recommender")
@@ -274,10 +276,22 @@ try:
     
     elif page == "Content-Based Recommender":
         st.title("Content-Based Recommender")
-        movie_title = st.text_input("Bir film ismi girin (örneğin, Inception):")
-        if movie_title:
-            recommendations = content_based_recommender(movie_title, df)
-            st.table(recommendations)
+        content_input = st.text_input("Bir film ismi girin (örneğin, Inception):")
+        if st.button("Filmleri Getir"):
+            if content_input:
+                try:
+                    recommendations_content = jaccard_based_recommender(content_input, df)
+                    if not recommendations_content.empty:
+                        st.write(f"'{content_input}' filmini sevdiyseniz şunları öneririz:")
+                        st.table(recommendations_content)
+                    else:
+                        st.error(f"'{content_input}' ile ilgili yeterli veri bulunamadı.", icon="⚠️")
+                except Exception as e:
+                    st.error(f"Bir hata oluştu: {str(e)}", icon="🚨")
+            else:
+                st.warning("Lütfen bir film ismi girin.", icon="❗")
+
+
 
     elif page == "Keyword-Based Recommender":
         st.title("Keyword-Based Recommender")
