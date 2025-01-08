@@ -3,6 +3,7 @@ import numpy as np
 import streamlit as st
 import difflib
 from rapidfuzz import fuzz, process  # For better fuzzy matching
+from typing import List
 
 # Verisetinin GitHub URL'si
 DATA_URL = "https://raw.githubusercontent.com/donayy/inka/refs/heads/main/movie_short_f.csv"
@@ -70,85 +71,39 @@ def genre_based_recommender_tmbd_f(df, genre, percentile=0.90):
 
     return qualified[['title', 'vote_average', 'wr']].reset_index(drop=True)
 
-# Director-based recommender function
-def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
-    director_choices = dataframe['directors'].dropna().unique()
+# Content-based recommender function
+def jaccard_similarity(set1, set2):
+    intersection = len(set1.intersection(set2))
+    union = len(set1.union(set2))
+    return intersection / union if union != 0 else 0
 
-    # Find closest matching director name
-    closest_match = difflib.get_close_matches(director, director_choices, n=1, cutoff=0.8)
+def content_based_recommender(title, dataframe, top_n=10):
+    dataframe['genres'] = dataframe['genres'].fillna('').astype(str)
+    dataframe['keywords'] = dataframe['keywords'].fillna('').astype(str)
 
-    # If no match is found, print a warning
-    if not closest_match:
-        print(f"Warning: No close match found for director: {director}")
-        return pd.Series([])
+    # Target movie details
+    target_movie = dataframe[dataframe['title'] == title]
+    if target_movie.empty:
+        return []
+    
+    target_movie = target_movie.iloc[0]
+    target_genres = set(target_movie['genres'].split())
+    target_keywords = set(target_movie['keywords'].split())
 
-    # Filter by the closest match
-    closest_match = closest_match[0]
-    df = dataframe[dataframe['directors'] == closest_match]
+    # Calculate similarity scores
+    scores = []
+    for _, row in dataframe.iterrows():
+        if row['title'] != title:  # Exclude the movie itself
+            genres = set(row['genres'].split())
+            keywords = set(row['keywords'].split())
+            genre_score = jaccard_similarity(target_genres, genres)
+            keyword_score = jaccard_similarity(target_keywords, keywords)
+            total_score = genre_score * 0.7 + keyword_score * 0.3  # Weighted
+            scores.append((row['title'], total_score))
 
-    vote_counts = df[df['vote_count'].notnull()]['vote_count'].astype('int')
-    vote_averages = df[df['vote_average'].notnull()]['vote_average'].astype('int')
-
-    C = vote_averages.mean()
-    m = vote_counts.quantile(percentile)
-
-    qualified = df[(df['vote_count'] >= m) & (df['vote_count'].notnull()) &
-                   (df['vote_average'].notnull())][['title', 'vote_count', 'vote_average', 'popularity']]
-
-    qualified['vote_count'] = qualified['vote_count'].astype('int')
-    qualified['vote_average'] = qualified['vote_average'].astype('int')
-
-    qualified['wr'] = qualified.apply(
-        lambda x: (x['vote_count'] / (x['vote_count'] + m) * x['vote_average']) + (m / (m + x['vote_count']) * C),
-        axis=1)
-
-    qualified = qualified.drop_duplicates(subset='title')
-    qualified = qualified.sort_values('wr', ascending=False).head(10)
-
-    return qualified[['title', 'vote_average', 'wr']].reset_index(drop=True)
-
-# Cast column preprocessing function
-def preprocess_cast_column(df):
-    # Split the cast column by commas and create new columns for each actor
-    cast_columns = df['cast'].str.split(',', expand=True)
-    df = pd.concat([df, cast_columns], axis=1)
-    return df
-
-# Cast-based recommender function
-def cast_based_recommender_tmdb_f(df, cast_name, percentile=0.90):
-    # Preprocess the cast column
-    df = preprocess_cast_column(df)
-
-    # Find films with the given cast member
-    cast_columns = df.columns[5:]  # New cast columns (excluding the first 5 columns)
-    df_cast = df[df[cast_columns].apply(lambda x: x.str.contains(cast_name, na=False).any(), axis=1)]
-
-    # If no films found for the cast member
-    if df_cast.empty:
-        return f"{cast_name} için film bulunamadı."
-
-    # Filter films by tmdb_vote_count and tmdb_vote_average
-    vote_counts = df_cast[df_cast['tmdb_vote_count'].notnull()]['tmdb_vote_count'].astype('int')
-    vote_averages = df_cast[df_cast['tmdb_vote_average'].notnull()]['tmdb_vote_average'].astype('int')
-    C = vote_averages.mean()
-    m = vote_counts.quantile(percentile)
-
-    qualified = df_cast[(df_cast['tmdb_vote_count'] >= m) &
-                        (df_cast['tmdb_vote_count'].notnull()) &
-                        (df_cast['tmdb_vote_average'].notnull())][
-        ['title', 'tmdb_vote_count', 'tmdb_vote_average', 'popularity']]
-
-    # Calculate weighted rating (wr)
-    qualified['wr'] = qualified.apply(
-        lambda x: (x['tmdb_vote_count'] / (x['tmdb_vote_count'] + m) * x['tmdb_vote_average']) + (
-                    m / (m + x['tmdb_vote_count']) * C),
-        axis=1)
-
-    # Sort the results and return the top 10 films
-    qualified = qualified.drop_duplicates(subset='title')
-    qualified = qualified.sort_values('wr', ascending=False).head(10)["title"]
-
-    return qualified.reset_index(drop=True)
+    # Sort by similarity score and return top_n movies
+    scores = sorted(scores, key=lambda x: x[1], reverse=True)
+    return [title for title, score in scores[:top_n]]
 
 # Uygulama başlıyor
 st.title("Inka & Chill 🎥")
@@ -172,27 +127,16 @@ try:
             st.table(recommendations_genre)
         else:
             st.write("Bu türde yeterli film bulunamadı.")
-
-    # Director-Based Recommender Başlangıç
-    director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
-    if director_input:
-        recommendations_director = director_based_recommender_tmdb_f(director_input, df)
-        if not recommendations_director.empty:
-            st.write(f"{director_input.capitalize()} tarafından yönetilen öneriler:")
-            st.table(recommendations_director)
-        else:
-            st.write("Bu yönetmenin yönetmenliğinde yeterli film bulunamadı.")
     
-    # Cast-Based Recommender Başlangıç
-    cast_input = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale):")
-    if cast_input:
-        recommendations_cast = cast_based_recommender_tmdb_f(df, cast_input)
-        if isinstance(recommendations_cast, pd.Series):
-            st.write(f"{cast_input.capitalize()} oyuncusunun yer aldığı öneriler:")
-            st.table(recommendations_cast)
+    # Content-Based Recommender Başlangıç
+    movie_input = st.text_input("Bir film ismi girin, benzerlerini önereyim (örneğin, Inception):")
+    if movie_input:
+        recommendations_content = content_based_recommender(movie_input, df)
+        if recommendations_content:
+            st.write(f"Benzer filmler:")
+            st.table(recommendations_content)
         else:
-            st.write(recommendations_cast)
+            st.write(f"'{movie_input}' adlı filme benzer bir film bulunamadı veya film mevcut değil.")
 
 except Exception as e:
     st.error(f"Veri yüklenirken bir hata oluştu: {e}")
-
