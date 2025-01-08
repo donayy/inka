@@ -249,19 +249,20 @@ def mood_based_recommender(mood, dataframe, top_n=10):
 # Streamlit App
 
 st.markdown(
-    f"""
+    """
     <style>
-    .stApp {{
-        background: url("https://img.freepik.com/free-photo/copy-space-popcorn-table_23-2148470198.jpg?t=st=1736371692~exp=1736375292~hmac=99acfcb457dcd82a820f5d9089e5a7c1890d658a9f5861b02dbae8fc5b704cfa&w=1800");
-        background-size: auto;
+    body {
+        background-image: url('https://img.freepik.com/free-photo/copy-space-popcorn-table_23-2148470198.jpg?t=st=1736371692~exp=1736375292~hmac=99acfcb457dcd82a820f5d9089e5a7c1890d658a9f5861b02dbae8fc5b704cfa&w=1800');
+        background-size: auto 120%; /* Görselin yüksekliğini %120 yap */
         background-repeat: no-repeat;
         background-attachment: fixed;
-        background-position: center;
-    }}
+        background-position: center 20%; /* Görseli yukarı kaydır */
+    }
     </style>
     """,
     unsafe_allow_html=True
 )
+
 
 
 st.markdown(
