@@ -8,13 +8,21 @@ import difflib
 DATA_URL = "https://raw.githubusercontent.com/donayy/inka/refs/heads/main/movie_short_f.csv"
 
 @st.cache_data
+@st.cache_data
 def load_data():
-    # Veriyi yükle
+    # Load data from the provided URL
     df = pd.read_csv(DATA_URL, on_bad_lines="skip")
-    # genres ve keywords sütunlarını normalize et
+    
+    # Normalize the 'genres' and 'keywords' columns to be lists
     df['genres'] = df['genres'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
     df['keywords'] = df['keywords'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
+    
+    # Ensure 'overview' and 'keywords' are strings for string operations
+    df['overview'] = df['overview'].fillna('').astype(str)
+    df['keywords'] = df['keywords'].fillna('').astype(str)
+    
     return df
+
 
 # Simple recommender function
 def simple_recommender_tmdb(df, percentile=0.95):
