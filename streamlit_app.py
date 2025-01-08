@@ -235,14 +235,17 @@ try:
     )
 
     if page == "Simple Recommender":
-        st.title("Simple Recommender")  # Bu satırın girintisi doğru
-        recommendations = simple_recommender_tmdb(df)
-        for _, row in recommendations.iterrows():
-            st.write(f"**{row['title']}** (Rating: {row['averageRating']})")
-            if row['poster_url']:
-                st.image(row['poster_url'], width=150)
-            else:
-                st.write("Poster bulunamadı.")
+        st.title("Simple Recommender")
+        if st.button("En Beğenilen 10 Film"):
+            recommendations_simple = simple_recommender_tmdb(df)
+            for _, row in recommendations_simple.iterrows():
+                st.write(f"**{row['title']}** (Rating: {row['averageRating']})")
+                if row['poster_url']:
+                    st.image(row['poster_url'], width=150)
+                else:
+                    st.write("Poster bulunamadı.")
+
+
 
     elif page == "Genre-Based Recommender":
         st.title("Genre-Based Recommender")
