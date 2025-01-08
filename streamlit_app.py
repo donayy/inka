@@ -109,9 +109,9 @@ def get_genre_suggestions(partial_input, all_genres):
 
 # Director-based recommender function
 def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
-    # Check for 'numVotes' column
-    if 'numVotes' not in dataframe.columns:
-        return "Hata: 'numVotes' sütunu veri çerçevesinde bulunamadı."
+    # Check for 'numVotes' column existence and values
+    if 'numVotes' not in dataframe.columns or dataframe['numVotes'].isna().all():
+        return "Hata: 'numVotes' sütunu veri çerçevesinde bulunamadı veya tüm değerler boş."
 
     # Normalize 'directors' column
     dataframe['directors'] = dataframe['directors'].fillna('').astype(str)
@@ -134,8 +134,11 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
         return f"'{closest_match}' isimli yönetmenin yeterli filmi bulunamadı."
 
     # Calculate weighted rating
-    num_votes = df[df['numVotes'].notnull()]['numVotes'].astype('int')
-    vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('float')
+    num_votes = df['numVotes'].astype('int', errors='ignore')
+    vote_averages = df['averageRating'].astype('float', errors='ignore')
+    if num_votes.empty or vote_averages.empty:
+        return f"'{closest_match}' için geçerli oy ve puan bilgisi bulunamadı."
+
     C = vote_averages.mean()
     m = num_votes.quantile(percentile)
     
@@ -147,6 +150,7 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
     qualified = qualified.sort_values('wr', ascending=False).head(10)
     
     return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
+
 
 
 def get_director_suggestions(partial_input, all_directors):
@@ -509,7 +513,6 @@ try:
                     st.write(recommendations)
             else:
                 st.write(f"'{director_input}' ile başlayan bir yönetmen bulunamadı. Lütfen başka bir isim deneyin.")
-
 
 
     elif page == "Oyuncu Seçimine Göre":
