@@ -27,7 +27,7 @@ def simple_recommender_tmdb(df, percentile=0.95):
         lambda x: (x['vote_count'] / (x['vote_count'] + m) * x['vote_average']) + 
                   (m / (m + x['vote_count']) * C), axis=1)
     qualified = qualified.sort_values('wr', ascending=False)
-    qualified = qualified.head(10)[['title', 'tmdb_vote_average', 'wr']]
+    qualified = qualified.head(10)[['title', 'vote_average', 'wr']]
     
     return qualified.reset_index(drop=True)
 
