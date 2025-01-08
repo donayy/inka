@@ -10,26 +10,30 @@ POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"  # Base URL for TMDB poster 
 
 
 @st.cache_data
-@st.cache_data
 def load_data():
-    # Veriyi yükle
-    df = pd.read_csv(DATA_URL, on_bad_lines="skip")
+    # Belirli sütunları yükleyin (gerekli sütunları seçin)
+    usecols = ['title', 'genres', 'keywords', 'vote_count', 'vote_average', 'popularity', 
+               'release_date', 'directors', 'cast', 'overview', 'backdrop_path']
     
-    # genres kolonunu normalize et
-    if 'genres' in df.columns:
-        df['genres'] = df['genres'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
-    else:
-        st.error("'genres' kolonu bulunamadı. Lütfen verinizi kontrol edin.")
-        return pd.DataFrame()  # Boş bir dataframe döndür
+    df = pd.read_csv(DATA_URL, usecols=usecols, on_bad_lines="skip", dtype={
+        'title': 'string', 
+        'genres': 'string',
+        'keywords': 'string',
+        'vote_count': 'float',
+        'vote_average': 'float',
+        'popularity': 'float',
+        'release_date': 'string',
+        'directors': 'string',
+        'cast': 'string',
+        'overview': 'string',
+        'backdrop_path': 'string'
+    })
     
-    # keywords ve overview kolonlarını normalize et
+    # Gerekli işlemleri yapın
+    df['genres'] = df['genres'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
     df['keywords'] = df['keywords'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
     df['overview'] = df['overview'].fillna('').astype(str)
-    df['keywords'] = df['keywords'].fillna('').astype(str)
-    
-    # Poster URL'si oluştur
-    if 'backdrop_path' in df.columns:
-        df['poster_url'] = df['backdrop_path'].apply(lambda x: f"{POSTER_BASE_URL}{x}" if pd.notnull(x) else None)
+    df['poster_url'] = df['backdrop_path'].apply(lambda x: f"{POSTER_BASE_URL}{x}" if pd.notnull(x) else None)
     
     return df
 
