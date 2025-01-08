@@ -8,9 +8,8 @@ import difflib
 DATA_URL = "https://raw.githubusercontent.com/donayy/inka/refs/heads/main/movie_short_f.csv"
 
 @st.cache_data
-@st.cache_data
 def load_data():
-    # Load data from the provided URL
+    # Veriyi yükle
     df = pd.read_csv(DATA_URL, on_bad_lines="skip")
     
     # Normalize the 'genres' and 'keywords' columns to be lists
@@ -22,7 +21,6 @@ def load_data():
     df['keywords'] = df['keywords'].fillna('').astype(str)
     
     return df
-
 
 # Simple recommender function
 def simple_recommender_tmdb(df, percentile=0.95):
@@ -88,70 +86,21 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
     qualified = qualified.drop_duplicates(subset='title')
     return qualified.sort_values('wr', ascending=False).head(10)[['title', 'vote_average', 'wr']].reset_index(drop=True)
 
-# Cast-based recommender function
-def preprocess_cast_column(df):
-    cast_columns = df['cast'].str.split(',', expand=True)
-    df = pd.concat([df, cast_columns], axis=1)
-    return df
+# Mood-based recommender function
+mood_to_genre = {
+    "happy": ["comedy", "family"],
+    "sad": ["drama", "romance"],
+    "adventurous": ["action", "adventure"],
+    "scary": ["horror", "thriller"]
+}
 
-def cast_based_recommender_tmdb_f(df, cast_name, percentile=0.90):
-    df = preprocess_cast_column(df)
-    cast_columns = df.columns[5:]
-    df_cast = df[df[cast_columns].apply(lambda x: x.str.contains(cast_name, na=False).any(), axis=1)]
-    if df_cast.empty:
-        return f"{cast_name} için film bulunamadı."
-    vote_counts = df_cast[df_cast['vote_count'].notnull()]['vote_count'].astype('int')
-    vote_averages = df_cast[df_cast['vote_average'].notnull()]['vote_average'].astype('int')
-    C = vote_averages.mean()
-    m = vote_counts.quantile(percentile)
-    qualified = df_cast[(df_cast['vote_count'] >= m) &
-                        (df_cast['vote_count'].notnull()) &
-                        (df_cast['vote_average'].notnull())][
-        ['title', 'vote_count', 'vote_average', 'popularity']]
-    qualified['wr'] = qualified.apply(
-        lambda x: (x['vote_count'] / (x['vote_count'] + m) * x['vote_average']) + (
-                    m / (m + x['vote_count']) * C),
-        axis=1)
-    qualified = qualified.drop_duplicates(subset='title')
-    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'vote_average', 'wr']].reset_index(drop=True)
-
-# Keyword-based recommender function
-def keyword_based_recommender(keyword, dataframe, top_n=10):
-    keyword = keyword.lower()
-    filtered_df = dataframe[
-        dataframe['overview'].str.lower().str.contains(keyword, na=False) |
-        dataframe['keywords'].str.lower().str.contains(keyword, na=False)
-    ]
+def mood_based_recommender(mood, dataframe, top_n=10):
+    genres = mood_to_genre.get(mood.lower(), [])
+    if not genres:
+        return f"No genres found for mood: {mood}"
+    filtered_df = dataframe[dataframe['genres'].apply(lambda x: any(g in genres for g in x))]
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
-    return filtered_df.head(top_n)[['title']]
-
-# Content-based recommender using Jaccard similarity
-def jaccard_similarity(set1, set2):
-    intersection = len(set1.intersection(set2))
-    union = len(set1.union(set2))
-    return intersection / union if union != 0 else 0
-
-def jaccard_based_recommender(title, dataframe, top_n=10):
-    target_movie = dataframe[dataframe['title'] == title]
-    if target_movie.empty:
-        return []
-
-    target_movie = target_movie.iloc[0]
-    target_genres = set(target_movie['genres']) if isinstance(target_movie['genres'], list) else set(str(target_movie['genres']).split(','))
-    target_keywords = set(target_movie['keywords']) if isinstance(target_movie['keywords'], list) else set(str(target_movie['keywords']).split(','))
-
-    scores = []
-    for _, row in dataframe.iterrows():
-        if row['title'] != title:
-            genres = set(row['genres']) if isinstance(row['genres'], list) else set(str(row['genres']).split(','))
-            keywords = set(row['keywords']) if isinstance(row['keywords'], list) else set(str(row['keywords']).split(','))
-            genre_score = jaccard_similarity(target_genres, genres)
-            keyword_score = jaccard_similarity(target_keywords, keywords)
-            total_score = genre_score * 0.7 + keyword_score * 0.3
-            scores.append((row['title'], total_score))
-
-    scores = sorted(scores, key=lambda x: x[1], reverse=True)
-    return [title for title, score in scores[:top_n]]
+    return filtered_df.head(top_n)[['title', 'genres']].reset_index(drop=True)
 
 # Streamlit App
 st.title("Inka & Chill 🎥")
@@ -160,59 +109,16 @@ st.write("Ne izlesek?")
 try:
     df = load_data()
 
-    # Simple Recommender
-    if st.button("En Beğenilen 10 Film"):
-        recommendations_simple = simple_recommender_tmdb(df)
-        st.table(recommendations_simple)
-
-    # Genre-Based Recommender
-    genre_input = st.text_input("Bir tür girin (örneğin, Action, Drama):")
-    if genre_input:
-        recommendations_genre = genre_based_recommender_tmbd_f(df, genre_input)
-        if not recommendations_genre.empty:
-            st.write(f"{genre_input.capitalize()} türündeki öneriler:")
-            st.table(recommendations_genre)
+    # Mood-Based Recommender
+    mood_input = st.text_input("Bir ruh hali girin (örneğin, happy, sad):")
+    if mood_input:
+        recommendations_mood = mood_based_recommender(mood_input, df)
+        if isinstance(recommendations_mood, pd.DataFrame):
+            st.write(f"'{mood_input.capitalize()}' modundaysanız şunları öneririz:")
+            st.table(recommendations_mood)
         else:
-            st.write("Bu türde yeterli film bulunamadı.")
+            st.write(recommendations_mood)
 
-    # Director-Based Recommender
-    director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
-    if director_input:
-        recommendations_director = director_based_recommender_tmdb_f(director_input, df)
-        if isinstance(recommendations_director, pd.DataFrame):
-            st.write(f"{director_input.capitalize()} yönetimindeki öneriler:")
-            st.table(recommendations_director)
-        else:
-            st.write(recommendations_director)
-
-    # Cast-Based Recommender
-    cast_input = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale):")
-    if cast_input:
-        recommendations_cast = cast_based_recommender_tmdb_f(df, cast_input)
-        if not recommendations_cast.empty:
-            st.write(f"{cast_input.capitalize()} oyuncusunun yer aldığı öneriler:")
-            st.table(recommendations_cast)
-        else:
-            st.write("Bu oyuncunun yer aldığı yeterli film bulunamadı.")
-
-    # Content-Based Recommender
-    content_input = st.text_input("Bir film ismi girin (örneğin, Inception):")
-    if content_input:
-        recommendations_content = jaccard_based_recommender(content_input, df)
-        if recommendations_content:
-            st.write(f"'{content_input}' filmini sevdiyseniz şunları öneririz:")
-            st.write(recommendations_content)
-        else:
-            st.write("Bu filmle ilgili yeterli veri bulunamadı.")
-
-    # Keyword-Based Recommender
-    keyword_input = st.text_input("Bir kelime veya tema girin (örneğin, Christmas):")
-    if keyword_input:
-        recommendations_keyword = keyword_based_recommender(keyword_input, df)
-        if not recommendations_keyword.empty:
-            st.write(f"'{keyword_input}' ile ilgili öneriler:")
-            st.table(recommendations_keyword)
-        else:
-            st.write(f"'{keyword_input}' ile ilgili yeterli film bulunamadı.")
+    # Add other recommenders as needed...
 except Exception as e:
     st.error(f"Bir hata oluştu: {e}")
