@@ -9,8 +9,13 @@ DATA_URL = "https://raw.githubusercontent.com/donayy/inka/refs/heads/main/movie_
 
 @st.cache_data
 def load_data():
-    # Hatalı satırları atlamak için on_bad_lines kullanıyoruz
-    return pd.read_csv(DATA_URL, on_bad_lines="skip")
+    # Veriyi yükle
+    df = pd.read_csv(DATA_URL, on_bad_lines="skip")
+    # genres ve keywords sütunlarını normalize et
+    df['genres'] = df['genres'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
+    df['keywords'] = df['keywords'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
+    
+    return df
 
 # Simple recommender function
 def simple_recommender_tmdb(df, percentile=0.95):
@@ -111,18 +116,29 @@ def jaccard_similarity(set1, set2):
     return intersection / union if union != 0 else 0
 
 def jaccard_based_recommender(title, dataframe, top_n=10):
-    target_movie = dataframe[dataframe['title'] == title].iloc[0]
-    target_genres = set(target_movie['genres'].split())
-    target_keywords = set(target_movie['keywords'].split())
+    # İlgili filmin bilgilerini al
+    target_movie = dataframe[dataframe['title'] == title]
+    if target_movie.empty:
+        return []
+
+    target_movie = target_movie.iloc[0]
+    
+    # genres ve keywords sütunlarını listeye dönüştür
+    target_genres = set(target_movie['genres']) if isinstance(target_movie['genres'], list) else set(str(target_movie['genres']).split(','))
+    target_keywords = set(target_movie['keywords']) if isinstance(target_movie['keywords'], list) else set(str(target_movie['keywords']).split(','))
+
+    # Benzerlik skorlarını hesapla
     scores = []
     for _, row in dataframe.iterrows():
-        if row['title'] != title:
-            genres = set(row['genres'].split())
-            keywords = set(row['keywords'].split())
+        if row['title'] != title:  # Kendini dışla
+            genres = set(row['genres']) if isinstance(row['genres'], list) else set(str(row['genres']).split(','))
+            keywords = set(row['keywords']) if isinstance(row['keywords'], list) else set(str(row['keywords']).split(','))
             genre_score = jaccard_similarity(target_genres, genres)
             keyword_score = jaccard_similarity(target_keywords, keywords)
-            total_score = genre_score * 0.7 + keyword_score * 0.3
+            total_score = genre_score * 0.7 + keyword_score * 0.3  # Ağırlıklandırma
             scores.append((row['title'], total_score))
+
+    # Skorlara göre sırala ve top_n sonuçları getir
     scores = sorted(scores, key=lambda x: x[1], reverse=True)
     return [title for title, score in scores[:top_n]]
 
