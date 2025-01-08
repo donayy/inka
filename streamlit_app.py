@@ -252,7 +252,7 @@ st.markdown(
     f"""
     <style>
     .stApp {{
-        background: url("https://img.freepik.com/free-photo/top-view-popcorn-frame-with-copy-space_23-2148553265.jpg?t=st=1736372838~exp=1736376438~hmac=23bee4d380252c7ff85800e88459a5e3a4ca769efe545acd0fbb51ab8fef3f5b&w=1800");
+        background: url("https://img.freepik.com/free-photo/cinema-elements-arrangement-with-copy-space_23-2148425062.jpg?t=st=1736373050~exp=1736376650~hmac=d2741d5aa576f25d9c80a0d8bb936113b25da687c8450b39196be204aa838ed6&w=1060");
         background-size: contain;
         background-repeat: no-repeat;
         background-attachment: fixed;
