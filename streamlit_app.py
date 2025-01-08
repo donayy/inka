@@ -253,10 +253,10 @@ st.markdown(
     <style>
     .stApp {{
         background: url("https://img.freepik.com/free-photo/cinema-elements-arrangement-with-copy-space_23-2148425062.jpg?t=st=1736373050~exp=1736376650~hmac=d2741d5aa576f25d9c80a0d8bb936113b25da687c8450b39196be204aa838ed6&w=1060");
-        background-size: auto;
+        background-size: cover;
         background-repeat: no-repeat;
         background-attachment: scroll;
-        background-position: center;
+        background-position: center center;
     }}
     </style>
     """,
@@ -355,6 +355,25 @@ st.markdown(
     [data-testid="stSidebar"] p {
         font-size: 16px; /* Alt yazı boyutu */
         color: #FFFFFF; /* Beyaz */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Streamlit CSS stili
+st.markdown(
+    """
+    <style>
+    /* Diğer CSS ayarlarınız burada */
+    .stButton>button {
+        background-color: #FFD700; /* Buton için Altın Sarısı */
+        color: #000000; /* Yazı için Siyah */
+        border-radius: 10px;
+        padding: 10px 20px;
+        border: none;
+        font-weight: bold;
+        font-size: 16px; /* Yazı boyutu */
     }
     </style>
     """,
