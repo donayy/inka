@@ -253,9 +253,9 @@ st.markdown(
     <style>
     .stApp {{
         background: url("https://img.freepik.com/free-photo/cinema-elements-arrangement-with-copy-space_23-2148425062.jpg?t=st=1736373050~exp=1736376650~hmac=d2741d5aa576f25d9c80a0d8bb936113b25da687c8450b39196be204aa838ed6&w=1060");
-        background-size: contain;
+        background-size: cover;
         background-repeat: no-repeat;
-        background-attachment: fixed;
+        background-attachment: scroll;
         background-position: center;
     }}
     </style>
