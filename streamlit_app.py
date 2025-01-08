@@ -109,6 +109,10 @@ def get_genre_suggestions(partial_input, all_genres):
 
 # Director-based recommender function
 def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
+    # Check for 'numVotes' column
+    if 'numVotes' not in dataframe.columns:
+        return "Hata: 'numVotes' sütunu veri çerçevesinde bulunamadı."
+
     # Normalize 'directors' column
     dataframe['directors'] = dataframe['directors'].fillna('').astype(str)
     
