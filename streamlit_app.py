@@ -352,7 +352,7 @@ try:
         "Gitmek istediğiniz sayfayı seçin:",
         ("En Beğenilen Filmler", "Tür Bazlı Tavsiye", "Yönetmen Bazlı Tavsiye", 
          "Oyuncu Bazlı Tavsiye", "Filme Göre Tavsiye", "İçerik Bazlı Tavsiye",
-         "Ruh Haline Göre Tavsiye")
+         "Ruh Haline Göre Tavsiye", "Hakkında")
     )
 
     if page == "En Beğenilen Filmler":
@@ -436,6 +436,23 @@ try:
         if mood:
             recommendations = mood_based_recommender(mood, df)
             st.table(recommendations)
+
+    elif page == "Hakkında":
+        st.title("Hakkında")
+        st.write("""
+        **I.N.K.A.** (Intelligent Network for Kinematic Advice), kullanıcıların ruh haline, tercih ettikleri türlere, 
+        yönetmenlere veya anahtar kelimelere göre film önerileri sunan yenilikçi bir film tavsiye sistemidir. 
+        
+        Bu sistem, geniş bir veri kümesi üzerinde çalışarak hem popüler hem de kişiselleştirilmiş önerilerde bulunur. 
+        I.N.K.A., akıllı algoritmaları sayesinde izleme deneyiminizi en üst düzeye çıkarmayı hedefler.
+        
+        **Özellikler:**
+        - Tür, yönetmen, oyuncu ve ruh hali bazlı öneriler.
+        - Kullanıcı dostu arayüz ve hızlı sonuçlar.
+        - Kapsamlı film veri tabanı.
+        - IMDB derecelendirmeleri ve popülerlik bazlı sıralama.
+        
+        **Amacımız:** I.N.K.A. ile herkes için doğru filmi bulmak ve keyifli bir sinema deneyimi yaşatmak!""")
 
 except Exception as e:
     st.error
