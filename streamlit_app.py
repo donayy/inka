@@ -9,7 +9,7 @@ DATA_URL = "https://raw.githubusercontent.com/donayy/inka/refs/heads/main/movie_
 
 @st.cache_data
 def load_data():
-    # Veriyi yükle
+    # Load data from the provided URL
     df = pd.read_csv(DATA_URL, on_bad_lines="skip")
     
     # Normalize the 'genres' and 'keywords' columns to be lists
@@ -21,6 +21,7 @@ def load_data():
     df['keywords'] = df['keywords'].fillna('').astype(str)
     
     return df
+
 
 # Simple recommender function
 def simple_recommender_tmdb(df, percentile=0.95):
@@ -119,6 +120,6 @@ try:
         else:
             st.write(recommendations_mood)
 
-    # Add other recommenders as needed...
+    # Other recommenders...
 except Exception as e:
     st.error(f"Bir hata oluştu: {e}")
