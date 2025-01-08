@@ -252,7 +252,7 @@ st.markdown(
     f"""
     <style>
     .stApp {{
-        background: url("https://img.freepik.com/free-vector/movie-theater-popcorn-concept-illustration_114360-25240.jpg?t=st=1736372588~exp=1736376188~hmac=267a604dab1cbff09fbb3b65733df1e6e5b0b135ab3b967467ca978a64c439b4&w=1060");
+        background: url("https://img.freepik.com/free-psd/delicious-popcorn-classic-striped-bucket_191095-78479.jpg?t=st=1736372771~exp=1736376371~hmac=0860d44d5df600b39ce8b452ddfeabd4718c7929ff831bce85a70375ce03bb43&w=1060");
         background-size: contain;
         background-repeat: no-repeat;
         background-attachment: fixed;
