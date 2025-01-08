@@ -236,18 +236,18 @@ try:
     )
 
     if page == "Simple Recommender":
-        st.title("En Beğenilenler")
+        st.write("En Beğenilenler")
         if st.button("En beğenilen 10 film için tıklayın"):
             recommendations_simple = simple_recommender_tmdb(df)
             for _, row in recommendations_simple.iterrows():
-                st.write(f"**{row['title']}** (Rating: {row['averageRating']})")
+                st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']})")
                 if row['poster_url']:
                     st.image(row['poster_url'], width=300)
                 else:
                     st.write("Poster bulunamadı.")
 
     elif page == "Genre-Based Recommender":
-        st.title("Tür Bazlı Tavsiye")
+        st.write("Tür Bazlı Tavsiye")
         genre = st.text_input("Bir tür girin (örneğin, Action):")
         if genre:
             recommendations = genre_based_recommender_tmbd_f(df, genre)
@@ -257,7 +257,7 @@ try:
                 st.write(f"'{genre}' türünde yeterli film bulunamadı.")
 
     elif page == "Director-Based Recommender":
-        st.title("Yönetmen Bazlı Tavsiye")
+        st.write("Yönetmen Bazlı Tavsiye")
         director = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
         if director:
             recommendations = director_based_recommender_tmdb_f(director, df)
@@ -267,7 +267,7 @@ try:
                 st.write(recommendations)
                 
     elif page == "Cast-Based Recommender":
-        st.title("Oyuncu Bazlı Tavsiye")
+        st.write("Oyuncu Bazlı Tavsiye")
         cast_name = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale):")
         if cast_name:
             recommendations = cast_based_recommender_tmdb_f(df, cast_name)
@@ -275,7 +275,7 @@ try:
 
     
     elif page == "Content-Based Recommender":
-        st.title("Filme Göre Tavsiye")
+        st.write("Filme Göre Tavsiye")
         movie_title = st.text_input("Bir film ismi girin (örneğin, Inception):")
         if movie_title:
             recommendations = content_based_recommender(movie_title, df)
@@ -283,14 +283,14 @@ try:
 
 
     elif page == "Keyword-Based Recommender":
-        st.title("İçerik Bazlı Tavsiye")
+        st.write("İçerik Bazlı Tavsiye")
         keyword = st.text_input("Bir kelime girin (örneğin, Christmas):")
         if keyword:
             recommendations = keyword_based_recommender(keyword, df)
             st.table(recommendations)
 
     elif page == "Mood-Based Recommender":
-        st.title("Ruh Hali Bazlı Tavsiye")
+        st.write("Ruh Hali Bazlı Tavsiye")
         mood = st.text_input("Bir ruh hali girin (örneğin, happy, sad):")
         if mood:
             recommendations = mood_based_recommender(mood, df)
