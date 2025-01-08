@@ -165,16 +165,6 @@ try:
         recommendations_simple = simple_recommender_tmdb(df)
         st.table(recommendations_simple)
 
-    # Keyword-Based Recommender
-    keyword_input = st.text_input("Bir kelime veya tema girin (örneğin, Christmas):")
-    if keyword_input:
-        recommendations_keyword = keyword_based_recommender(keyword_input, df)
-        if not recommendations_keyword.empty:
-            st.write(f"'{keyword_input}' ile ilgili öneriler:")
-            st.table(recommendations_keyword)
-        else:
-            st.write(f"'{keyword_input}' ile ilgili yeterli film bulunamadı.")
-
     # Genre-Based Recommender
     genre_input = st.text_input("Bir tür girin (örneğin, Action, Drama):")
     if genre_input:
@@ -214,5 +204,15 @@ try:
             st.write(recommendations_content)
         else:
             st.write("Bu filmle ilgili yeterli veri bulunamadı.")
+
+    # Keyword-Based Recommender
+    keyword_input = st.text_input("Bir kelime veya tema girin (örneğin, Christmas):")
+    if keyword_input:
+        recommendations_keyword = keyword_based_recommender(keyword_input, df)
+        if not recommendations_keyword.empty:
+            st.write(f"'{keyword_input}' ile ilgili öneriler:")
+            st.table(recommendations_keyword)
+        else:
+            st.write(f"'{keyword_input}' ile ilgili yeterli film bulunamadı.")
 except Exception as e:
     st.error(f"Bir hata oluştu: {e}")
