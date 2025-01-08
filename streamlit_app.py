@@ -109,30 +109,30 @@ def get_genre_suggestions(partial_input, all_genres):
 
 # Director-based recommender function
 def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
-    # Check for 'numVotes' column
-    if 'numVotes' not in dataframe.columns:
-        return "Hata: 'numVotes' sütunu veri çerçevesinde bulunamadı."
+    # Sütun Kontrolü
+    if 'numVotes' not in dataframe.columns or 'averageRating' not in dataframe.columns or 'directors' not in dataframe.columns:
+        return "Hata: Gerekli sütunlar eksik. 'numVotes', 'averageRating', veya 'directors' sütunlarını kontrol edin."
 
     # Normalize 'directors' column
     dataframe['directors'] = dataframe['directors'].fillna('').astype(str)
     
-    # Get all unique directors
+    # Mevcut yönetmenleri listele
     all_directors = sorted(dataframe['directors'].unique())
 
-    # Find the closest matching director
-    closest_match = difflib.get_close_matches(director.lower(), [d.lower() for d in all_directors], n=1, cutoff=0.6)
+    # Kullanıcı girişine uygun öneriler
+    closest_match = difflib.get_close_matches(director.lower(), [d.lower() for d in all_directors], n=1, cutoff=0.8)
     if not closest_match:
         return f"'{director}' isimli bir yönetmen bulunamadı. Lütfen başka bir isim deneyin."
     
-    # Match the case-sensitive director name
+    # Eşleşen yönetmeni büyük-küçük harf duyarlı olarak bul
     closest_match = next(d for d in all_directors if d.lower() == closest_match[0])
 
-    # Filter dataframe by matched director
+    # Yönetmene göre filtrele
     df = dataframe[dataframe['directors'] == closest_match]
     if df.empty:
         return f"'{closest_match}' isimli yönetmenin yeterli filmi bulunamadı."
 
-    # Calculate weighted rating
+    # Ağırlıklı puan hesaplama
     num_votes = df[df['numVotes'].notnull()]['numVotes'].astype('int')
     vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('float')
     C = vote_averages.mean()
@@ -146,6 +146,7 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
     qualified = qualified.sort_values('wr', ascending=False).head(10)
     
     return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
+
 
 def get_director_suggestions(partial_input, all_directors):
     partial_input = partial_input.lower()
