@@ -6,8 +6,9 @@ import difflib
 
 # Verisetinin GitHub URL'si
 DATA_URL = "https://raw.githubusercontent.com/donayy/inka/refs/heads/main/movie_short_f.csv"
+POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"  # Base URL for TMDB poster images
 
-@st.cache_data
+
 @st.cache_data
 def load_data():
     # Load data from the provided URL
@@ -21,8 +22,10 @@ def load_data():
     df['overview'] = df['overview'].fillna('').astype(str)
     df['keywords'] = df['keywords'].fillna('').astype(str)
     
+    # Add full poster URL column
+    df['poster_url'] = df['poster_path'].apply(lambda x: f"{POSTER_BASE_URL}{x}" if pd.notnull(x) else None)
+    
     return df
-
 
 # Simple recommender function
 def simple_recommender_tmdb(df, percentile=0.95):
@@ -32,14 +35,15 @@ def simple_recommender_tmdb(df, percentile=0.95):
     m = vote_counts.quantile(percentile)
     df['year'] = pd.to_datetime(df['release_date'], errors='coerce').apply(lambda x: str(x).split('-')[0] if x != np.nan else np.nan)
     qualified = df[(df['vote_count'] >= m) & (df['vote_count'].notnull()) & (df['vote_average'].notnull())][
-        ['title', 'year', 'vote_count', 'vote_average', 'popularity']]
+        ['title', 'year', 'vote_count', 'vote_average', 'popularity', 'poster_url']]
     qualified['vote_count'] = qualified['vote_count'].astype('int')
     qualified['vote_average'] = qualified['vote_average'].astype('int')
     qualified['wr'] = qualified.apply(
         lambda x: (x['vote_count'] / (x['vote_count'] + m) * x['vote_average']) + 
                   (m / (m + x['vote_count']) * C), axis=1)
     qualified = qualified.sort_values('wr', ascending=False)
-    return qualified.head(10)[['title', 'vote_average', 'wr']].reset_index(drop=True)
+    return qualified.head(10)[['title', 'vote_average', 'wr', 'poster_url']].reset_index(drop=True)
+
 
 # Genre-based recommender function
 def genre_based_recommender_tmbd_f(df, genre, percentile=0.90):
@@ -187,7 +191,12 @@ try:
     # Simple Recommender
     if st.button("En Beğenilen 10 Film"):
         recommendations_simple = simple_recommender_tmdb(df)
-        st.table(recommendations_simple)
+        for _, row in recommendations_simple.iterrows():
+            st.write(f"**{row['title']}** (Rating: {row['vote_average']})")
+            if row['poster_url']:
+                st.image(row['poster_url'], width=150)
+            else:
+                st.write("Poster bulunamadı.")
 
     # Genre-Based Recommender
     genre_input = st.text_input("Bir tür girin (örneğin, Action, Drama):")
