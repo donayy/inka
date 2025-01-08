@@ -247,8 +247,6 @@ def mood_based_recommender(mood, dataframe, top_n=10):
 
 
 # Streamlit App
-st.title("Inka & Chill 🎥")
-st.write("Ne izlesek?")
 
 st.markdown(
     """
@@ -270,8 +268,8 @@ st.markdown(
         margin-bottom: 20px;
     }
     </style>
-    <div class="center-title">Inka & Chill </div>
-    <div class="page-title">Tür Bazlı Tavsiye!</div>
+    <div class="center-title">Inka & Chill 🎥 </div>
+    <div class="page-title">Ne izlesek?</div>
     """,
     unsafe_allow_html=True
 )
@@ -280,12 +278,12 @@ st.markdown(
 try:
     df = load_data()
 
-    st.sidebar.title("Navigasyon")
+    st.sidebar.title("Menu")
     page = st.sidebar.radio(
         "Gitmek istediğiniz sayfayı seçin:",
         ("En Beğenilen Filmler", "Tür Bazlı Tavsiye", "Yönetmen Bazlı Tavsiye", 
          "Oyuncu Bazlı Tavsiye", "Filme Göre Tavsiye", "İçerik Bazlı Tavsiye",
-         "Ruh Hali Bazlı Tavsiye")
+         "Ruh Haline Göre Tavsiye")
     )
 
     if page == "En Beğenilen Filmler":
@@ -363,7 +361,7 @@ try:
             recommendations = keyword_based_recommender(keyword, df)
             st.table(recommendations)
 
-    elif page == "Ruh Hali Bazlı Tavsiye":
+    elif page == "Ruh Haline Göre Tavsiye":
         st.write("Ruh Hali Bazlı Tavsiye")
         mood = st.text_input("Bir ruh hali girin (örneğin, happy, sad):")
         if mood:
