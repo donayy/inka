@@ -1,12 +1,10 @@
 import pandas as pd
-import numpy as np
 import streamlit as st
 from rapidfuzz import fuzz, process  
 import difflib
 
 # GitHub URL of dataset
 DATA_URL = "https://raw.githubusercontent.com/donayy/inka/refs/heads/main/movies_dataset.csv"
-# Base URL for TMDB poster images
 POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"  
 
 
@@ -25,7 +23,6 @@ def load_data():
     # Normalize the keywords and overview columns
     df['keywords'] = df['keywords'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
     df['overview'] = df['overview'].fillna('').astype(str)
-    df['keywords'] = df['keywords'].fillna('').astype(str)
     
     # Generate Poster URL
     if 'backdrop_path' in df.columns:
@@ -36,20 +33,18 @@ def load_data():
 
 # Simple recommender function
 def simple_recommender_tmdb(df, percentile=0.95):
-    numVotess = df[df['numVotes'].notnull()]['numVotes'].astype('int')
-    vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('int')
+    num_votes = df[df['numVotes'].notnull()]['numVotes'].astype('int')
+    vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('float')
     C = vote_averages.mean()
-    m = numVotess.quantile(percentile)
-    df['year'] = pd.to_datetime(df['release_date'], errors='coerce').apply(lambda x: str(x).split('-')[0] if x != np.nan else np.nan)
-    qualified = df[(df['numVotes'] >= m) & (df['numVotes'].notnull()) & (df['averageRating'].notnull())][
-        ['title', 'year', 'numVotes', 'averageRating', 'popularity', 'poster_url']]
-    qualified['numVotes'] = qualified['numVotes'].astype('int')
-    qualified['averageRating'] = qualified['averageRating'].astype('int')
+    m = num_votes.quantile(percentile)
+    df['year'] = pd.to_datetime(df['release_date'], errors='coerce').dt.year
+    qualified = df[(df['numVotes'] >= m) & (df['averageRating'].notnull())][
+        ['title', 'year', 'numVotes', 'averageRating', 'poster_url']]
     qualified['wr'] = qualified.apply(
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + 
                   (m / (m + x['numVotes']) * C), axis=1)
     qualified = qualified.sort_values('wr', ascending=False)
-    return qualified.head(10)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
+    return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
 
 
 # Genre-based recommender function
@@ -222,6 +217,8 @@ def mood_based_recommender(mood, dataframe, top_n=10):
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
     return filtered_df.head(top_n)[['title']].reset_index(drop=True)
     
+
+
 # Streamlit App
 st.title("Inka & Chill 🎥")
 st.write("Ne izlesek?")
@@ -229,79 +226,87 @@ st.write("Ne izlesek?")
 try:
     df = load_data()
 
-    # Simple Recommender
-    if st.button("En Beğenilen 10 Film"):
-        recommendations_simple = simple_recommender_tmdb(df)
-        for _, row in recommendations_simple.iterrows():
+    st.sidebar.title("Navigasyon")
+    page = st.sidebar.radio(
+        "Gitmek istediğiniz sayfayı seçin:",
+        ("Simple Recommender", "Genre-Based Recommender", "Director-Based Recommender", 
+         "Cast-Based Recommender", "Content-Based Recommender", "Keyword-Based Recommender",
+         "Mood-Based Recommender")
+    )
+
+    if page == "Simple Recommender":
+        st.title("Simple Recommender")
+        recommendations = simple_recommender_tmdb(df)
+        for _, row in recommendations.iterrows():
             st.write(f"**{row['title']}** (Rating: {row['averageRating']})")
             if row['poster_url']:
                 st.image(row['poster_url'], width=150)
             else:
                 st.write("Poster bulunamadı.")
 
-    # Genre-Based Recommender
-    genre_input = st.text_input("Bir tür girin (örneğin, Action, Drama):")
-    if genre_input:
-        recommendations_genre = genre_based_recommender_tmbd_f(df, genre_input)
-        if not recommendations_genre.empty:
-            st.write(f"{genre_input.capitalize()} türündeki öneriler:")
-            st.table(recommendations_genre)
-        else:
-            st.write("Bu türde yeterli film bulunamadı.")
-
-    # Director-Based Recommender
-    director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
-    if director_input:
-        recommendations_director = director_based_recommender_tmdb_f(director_input, df)
-        if isinstance(recommendations_director, pd.DataFrame):
-            st.write(f"{director_input.capitalize()} yönetimindeki öneriler:")
-            st.table(recommendations_director)
-        else:
-            st.write(recommendations_director)
-
-    # Cast-Based Recommender
-    cast_input = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale):")
-    if cast_input:
-        recommendations_cast = cast_based_recommender_tmdb_f(df, cast_input)
-        if not recommendations_cast.empty:
-            st.write(f"{cast_input.capitalize()} oyuncusunun yer aldığı öneriler:")
-            st.table(recommendations_cast)
-        else:
-            st.write("Bu oyuncunun yer aldığı yeterli film bulunamadı.")
-
-    # Content-Based Recommender
-    content_input = st.text_input("Bir film ismi girin (örneğin, Inception):")
-    if content_input:
-        recommendations_content = jaccard_based_recommender(content_input, df)
-        if recommendations_content:
-            st.write(f"'{content_input}' filmini sevdiyseniz şunları öneririz:")
-            st.write(recommendations_content)
-        else:
-            st.write("Bu filmle ilgili yeterli veri bulunamadı.")
-
-    # Keyword-Based Recommender
-    keyword_input = st.text_input("Bir kelime veya tema girin (örneğin, Christmas):")
-    if keyword_input:
-        try:
-            recommendations_keyword = keyword_based_recommender(keyword_input, df)
-            if not recommendations_keyword.empty:
-                st.write(f"'{keyword_input}' ile ilgili öneriler:")
-                st.table(recommendations_keyword)
+    elif page == "Genre-Based Recommender":
+        st.title("Genre-Based Recommender")
+        genre = st.text_input("Bir tür girin (örneğin, Action):")
+        if genre:
+            recommendations = genre_based_recommender_tmbd_f(df, genre)
+            if not recommendations.empty:
+                st.table(recommendations)
             else:
-                st.write(f"'{keyword_input}' ile ilgili yeterli film bulunamadı.")
-        except Exception as e:
-            st.error(f"Bir hata oluştu: {e}")
+                st.write(f"'{genre}' türünde yeterli film bulunamadı.")
+
+    elif page == "Director-Based Recommender":
+        st.title("Director-Based Recommender")
+        director = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
+        if director:
+            recommendations = director_based_recommender_tmdb_f(director, df)
+            if isinstance(recommendations, pd.DataFrame):
+                st.table(recommendations)
+            else:
+                st.write(recommendations)
+                
+    elif page == "Cast-Based Recommender":
+        st.title("Cast-Based Recommender")
+        cast_name = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale):")
+        if cast_name:
+            recommendations = cast_based_recommender_tmdb_f(df, cast_name)
+            st.table(recommendations)
+
+    
+    elif page == "Content-Based Recommender":
+        st.title("Content-Based Recommender")
+        movie_title = st.text_input("Bir film ismi girin (örneğin, Inception):")
+        if movie_title:
+            recommendations = content_based_recommender(movie_title, df)
+            st.table(recommendations)
+
+    elif page == "Keyword-Based Recommender":
+        st.title("Keyword-Based Recommender")
+        keyword = st.text_input("Bir kelime girin (örneğin, Christmas):")
+        if keyword:
+            recommendations = keyword_based_recommender(keyword, df)
+            st.table(recommendations)
+
+    elif page == "Mood-Based Recommender":
+        st.title("Mood-Based Recommender")
+        mood = st.text_input("Bir ruh hali girin (örneğin, happy, sad):")
+        if mood:
+            recommendations = mood_based_recommender(mood, df)
+            st.table(recommendations)
+
+except Exception as e:
+    st.error
 
 
-    # Mood-Based Recommender
-    mood_input = st.text_input("Bir ruh hali girin (örneğin, happy, sad):")
-    if mood_input:
-        recommendations_mood = mood_based_recommender(mood_input, df)
-        if isinstance(recommendations_mood, pd.DataFrame):
-            st.write(f"'{mood_input.capitalize()}' modundaysanız şunları öneririz:")
-            st.table(recommendations_mood)
-        else:
-            st.write(recommendations_mood)
-            
+
+
+
+
+
+
+       
+
+
+
+
 except Exception as e:
     st.error(f"Bir hata oluştu: {e}")
