@@ -89,7 +89,7 @@ def genre_based_recommender(df, genre, percentile=0.90):
     qualified = df_filtered[(df_filtered['numVotes'] >= m) &
                             (df_filtered['numVotes'].notnull()) &
                             (df_filtered['averageRating'].notnull())][
-        ['title', 'numVotes', 'averageRating', 'poster_url']]
+        ['title', 'numVotes', 'averageRating', 'poster_url', 'overview']]
     
     if qualified.empty:
         return f"No qualified movies found for the genre: {closest_match}"
@@ -478,7 +478,7 @@ try:
             suggestions = get_genre_suggestions(genre_input, all_genres)
             if suggestions:
                 st.write("Türler:")
-                for suggestion in suggestions[:5]:  
+                    for suggestion in suggestions[:5]:  
                     st.write(f"- {suggestion.capitalize()}")
                 closest_match = suggestions[0]
                 recommendations = genre_based_recommender(df, closest_match)
@@ -490,6 +490,11 @@ try:
                             st.image(row['poster_url'], width=500)
                         else:
                             st.write("Poster bulunamadı.")
+                        if row['overview']:
+                            translated_overview = translate_text(row['overview'], dest_language='tr')
+                            st.write(f"**Özet (Türkçe):** {translated_overview}")
+                        else:
+                            st.write("Özet bulunamadı.")
                 else:
                     st.write(recommendations)
             else:
