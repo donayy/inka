@@ -162,7 +162,7 @@ def cast_based_recommender_tmdb_f(df, cast_name, percentile=0.90):
     cast_columns = df.columns[5:]
     df_cast = df[df[cast_columns].apply(lambda x: x.str.contains(cast_name, na=False).any(), axis=1)]
     if df_cast.empty:
-        return f"{cast_name} için film bulunamadı."
+        return f"{cast_name} için film bulunamadı.", []
     numVotess = df_cast[df_cast['numVotes'].notnull()]['numVotes'].astype('int')
     vote_averages = df_cast[df_cast['averageRating'].notnull()]['averageRating'].astype('int')
     C = vote_averages.mean()
@@ -170,13 +170,14 @@ def cast_based_recommender_tmdb_f(df, cast_name, percentile=0.90):
     qualified = df_cast[(df_cast['numVotes'] >= m) &
                         (df_cast['numVotes'].notnull()) &
                         (df_cast['averageRating'].notnull())][
-        ['title', 'numVotes', 'averageRating', 'popularity', 'poster_url']]
+        ['title', 'original_title', 'original_language', 'numVotes', 'averageRating', 'popularity', 'poster_url', 'overview']]
     qualified['wr'] = qualified.apply(
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + (
                     m / (m + x['numVotes']) * C),
         axis=1)
     qualified = qualified.drop_duplicates(subset='title')
-    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
+    qualified = qualified.sort_values('wr', ascending=False)
+    return qualified.head(10)[['title', 'original_title', 'original_language', 'averageRating', 'poster_url', 'overview']].reset_index(drop=True), df_cast['cast'].dropna().unique()
 
 
 # Content-based recommender using Jaccard similarity
@@ -546,18 +547,34 @@ try:
         cast_name = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale, Elijah Wood, Şener Şen):")
 
         if cast_name:
-            recommendations = cast_based_recommender_tmdb_f(df, cast_name)
+            recommendations, closest_matches = cast_based_recommender_tmdb_f(df, cast_name)
+
+            if closest_matches:
+                st.write(f"'{cast_name}' ile en yakın eşleşen oyuncular:")
+                for match in closest_matches[:5]:  # En fazla 5 oyuncu göster
+                    st.write(f"- {match}")
 
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
                 st.write(f"'{cast_name}' oyuncusunun yer aldığı filmler:")
                 for _, row in recommendations.iterrows():
-                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
+                # Check for original language and display original title if not English
+                    if row['original_language'] != 'en' and pd.notna(row['original_title']):
+                        title_display = f"{row['title']} / {row['original_title']}"
+                    else:
+                        title_display = row['title']
+
+                    st.write(f"**{title_display}** (IMDB Rating: {row['averageRating']:.1f})")
                     if row['poster_url']:
                         st.image(row['poster_url'], width=500)
                     else:
                         st.write("Poster bulunamadı.")
+                    if row['overview']:
+                        translated_overview = translate_text(row['overview'], dest_language='tr')
+                        st.write(f"**Özet:** {translated_overview}")
+                    else:
+                        st.write("Özet bulunamadı.")
             else:
-                st.write(recommendations)
+                st.write("Hiçbir öneri bulunamadı.")
 
 
     
