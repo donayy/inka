@@ -41,7 +41,7 @@ def translate_text(text, dest_language='tr'):
 
 
 # Simple recommender function
-def simple_recommender_tmdb(df, percentile=0.95):
+def simple_recommender(df, percentile=0.95):
     num_votes = df[df['numVotes'].notnull()]['numVotes'].astype('int')
     vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('float')
     C = vote_averages.mean()
@@ -60,27 +60,22 @@ def simple_recommender_tmdb(df, percentile=0.95):
 # Genre-based recommender function
 def genre_based_recommender(df, genre, percentile=0.90):
     genre = genre.lower()
-
     # Normalize the genres column
     df['genres'] = df['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
-
     # Get all unique genres
     all_genres = df['genres'].explode().unique()
     if not all_genres.size:
         return "No genres available in the dataset."
-
     # Find the closest matching genre
     closest_match = process.extractOne(genre, all_genres, scorer=fuzz.ratio)
     if closest_match:
         closest_match = closest_match[0]
     else:
         return f"No matching genres found for: {genre}"
-
     # Filter movies by the matched genre
     df_filtered = df[df['genres'].apply(lambda x: closest_match in x)]
     if df_filtered.empty:
         return f"No movies found for the genre: {closest_match}"
-
     # Calculate weighted rating
     num_votes = df_filtered[df_filtered['numVotes'].notnull()]['numVotes'].astype('int')
     vote_averages = df_filtered[df_filtered['averageRating'].notnull()]['averageRating'].astype('float')
@@ -99,14 +94,12 @@ def genre_based_recommender(df, genre, percentile=0.90):
     qualified['averageRating'] = qualified['averageRating'].astype('float')
     qualified['wr'] = qualified.apply(
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) +
-                  (m / (m + x['numVotes']) * C),
-        axis=1)
+                  (m / (m + x['numVotes']) * C), axis=1)
 
     # Sort by weighted rating and drop duplicates
     qualified = qualified.drop_duplicates(subset='title')
     qualified = qualified.sort_values('wr', ascending=False)
 
-    # Return the top 10 movies
     return qualified.head(10).reset_index(drop=True)
 
     
@@ -120,7 +113,7 @@ def director_based_recommender(director, dataframe, percentile=0.90):
     director_choices = dataframe['directors'].dropna().unique()
     closest_matches = difflib.get_close_matches(director, director_choices, n=10, cutoff=0.7)
     if closest_matches:
-        closest_match = closest_matches[0]  # İlk eşleşen yönetmen
+        closest_match = closest_matches[0]  
         recommendations = dataframe[dataframe['directors'] == closest_match] 
     else:
         closest_match = None
@@ -148,15 +141,13 @@ def get_director_suggestions(partial_input, all_directors):
     suggestions = [director for director in all_directors if partial_input in director]
     return suggestions 
 
-
-
 # Cast-based recommender function
 def preprocess_cast_column(df):
     cast_columns = df['cast'].str.split(',', expand=True)
     df = pd.concat([df, cast_columns], axis=1)
     return df
 
-def cast_based_recommender_tmdb_f(df, cast_name, percentile=0.90):
+def cast_based_recommender(df, cast_name, percentile=0.90):
     df = preprocess_cast_column(df)
     cast_columns = df.columns[5:]
     df_cast = df[df[cast_columns].apply(lambda x: x.str.contains(cast_name, na=False).any(), axis=1)]
@@ -186,19 +177,16 @@ def jaccard_similarity(set1, set2):
 def content_based_recommender(title, dataframe, top_n=10):
     if 'title' not in dataframe.columns:
         raise ValueError("'title' sütunu veri çerçevesinde bulunamadı.")
-
     # Search for the title in both 'title' and 'original_title'
     target_movie = dataframe[(dataframe['title'] == title) | (dataframe['original_title'] == title)]
     if target_movie.empty:
         return pd.DataFrame(columns=['Film Adı', 'IMDB Rating', 'Poster URL'])
 
     target_movie = target_movie.iloc[0]
-
     target_genres = set(target_movie['genres']) if isinstance(target_movie['genres'], list) else set(str(target_movie['genres']).split(','))
     target_keywords = set(target_movie['keywords']) if isinstance(target_movie['keywords'], list) else set(str(target_movie['keywords']).split(','))
 
     recommendations = []
-
     for _, row in dataframe.iterrows():
         if row['title'] != title and row.get('original_title') != title:
             genres = set(row['genres']) if isinstance(row['genres'], list) else set(str(row['genres']).split(','))
@@ -207,27 +195,21 @@ def content_based_recommender(title, dataframe, top_n=10):
             genre_score = jaccard_similarity(target_genres, genres)
             keyword_score = jaccard_similarity(target_keywords, keywords)
             total_score = genre_score * 0.5 + keyword_score * 0.5
-
             if pd.isna(row['averageRating']):
                 continue
-
             poster_url = row['poster_url'] if 'poster_url' in row and pd.notna(row['poster_url']) else 'Poster bulunamadı'
-
             # Check for original language and include original title if not English
             if row.get('original_language') != 'en' and pd.notna(row.get('original_title')):
                 film_title = f"{row['title']} / {row['original_title']}"
             else:
                 film_title = row['title']
-
             recommendations.append({
                 'Film Adı': film_title,
                 'IMDB Rating': row['averageRating'],
                 'Poster URL': poster_url,
-                'Total Score': total_score
-            })
+                'Total Score': total_score})
 
     sorted_recommendations = sorted(recommendations, key=lambda x: x['Total Score'], reverse=True)[:top_n]
-
     return pd.DataFrame(sorted_recommendations).drop(columns=['Total Score']).reset_index(drop=True)
 
 
@@ -235,7 +217,6 @@ def content_based_recommender(title, dataframe, top_n=10):
 def keyword_based_recommender(keyword, dataframe, top_n=10):
     keyword = keyword.lower()
     
-    # Ensure the columns are strings
     dataframe['overview'] = dataframe['overview'].astype(str)
     dataframe['keywords'] = dataframe['keywords'].astype(str)
     
@@ -284,19 +265,15 @@ mood_translation = {
     "büyülü": "magical"}
 
 def mood_based_recommender(mood, dataframe, top_n=10):
-    # Get genres related to the mood
     genres = mood_to_genre.get(mood.lower(), [])
     if not genres:
         return f"No genres found for mood: {mood}"
-    
-    # Ensure 'genres' is processed as a list
     dataframe['genres'] = dataframe['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
     
     filtered_df = dataframe[dataframe['genres'].apply(lambda x: any(g.strip().lower() in genres for g in x))]
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
     return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
    
-
 
 # Streamlit App
 
@@ -456,8 +433,8 @@ try:
 
 
     if page == "Popüler Filmler":
-        if st.button("En beğenilen 10 film için tıklayın"):
-            recommendations_simple = simple_recommender_tmdb(df)
+        if st.button("Popüler Filmleri Listele"):
+            recommendations_simple = simple_recommender(df)
             for _, row in recommendations_simple.iterrows():
                 st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
                 if row['poster_url']:
@@ -515,7 +492,6 @@ try:
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
                 st.write(f"'{closest_matches[0]}' yönetmeninden öneriler:")
                 for _, row in recommendations.iterrows():
-                    # Check for original language and display original title if not English
                     if row['original_language'] != 'en' and pd.notna(row['original_title']):
                         title_display = f"{row['title']} / {row['original_title']}"
                     else:
@@ -534,14 +510,11 @@ try:
             else:
                 st.write("Hiçbir öneri bulunamadı.")
 
-    
 
     elif page == "Oyuncu Seçimine Göre":
         cast_name = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale, Elijah Wood, Şener Şen):")
-
         if cast_name:
-            recommendations = cast_based_recommender_tmdb_f(df, cast_name)
-
+            recommendations = cast_based_recommender(df, cast_name)
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
                 st.write(f"'{cast_name}' oyuncusunun yer aldığı filmler:")
                 for _, row in recommendations.iterrows():
@@ -549,7 +522,6 @@ try:
                         title_display = f"{row['title']} / {row['original_title']}"
                     else:
                         title_display = row['title']
-
                     st.write(f"**{title_display}** (IMDB Rating: {row['averageRating']:.1f})")
                     if row['poster_url']:
                         st.image(row['poster_url'], width=500)
@@ -558,15 +530,12 @@ try:
             else:
                 st.write(recommendations)
 
-
     
     elif page == "Girdiğiniz Filme Göre Öneriler":
         movie_title = st.text_input("Bir film ismi girin (örneğin, Inception, Deadpool, Tosun Paşa):")
-
         if movie_title:
             try:
                 recommendations = content_based_recommender(movie_title, df)
-
                 if recommendations.empty:
                     st.write(f"'{movie_title}' ile ilgili öneri bulunamadı.")
                 else:
@@ -585,15 +554,14 @@ try:
         keyword = st.text_input("Bir kelime girin (örneğin, Butterfly):")
         if keyword:
             recommendations = keyword_based_recommender(keyword, df)
-        
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
                 st.write(f"'{keyword}' ile ilgili önerilen filmler:")
                 for _, row in recommendations.iterrows():
-                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")  # Film başlığını yazdır
+                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")  
                     if row['poster_url']:
-                        st.image(row['poster_url'], width=500)  # Poster görselini göster
+                        st.image(row['poster_url'], width=500) 
                     else:
-                        st.write("Poster bulunamadı.")  # Eksik poster mesajı
+                        st.write("Poster bulunamadı.")  
             else:
                 st.write(f"'{keyword}' ile ilgili öneri bulunamadı.")
 
@@ -607,11 +575,11 @@ try:
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
                 st.write(f"'{mood}' ruh hali için önerilen filmler:")
                 for _, row in recommendations.iterrows():
-                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")  # Başlık ve IMDB puanı
+                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})") 
                     if row['poster_url']:
-                        st.image(row['poster_url'], width=500)  # Görseli göster
+                        st.image(row['poster_url'], width=500)  
                     else:
-                        st.write("Poster bulunamadı.")  # Görsel eksikse mesaj göster
+                        st.write("Poster bulunamadı.") 
             else:
                 st.write(f"'{mood}' ruh hali için öneri bulunamadı.")
     
