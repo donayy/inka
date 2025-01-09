@@ -502,7 +502,7 @@ try:
     
 
     elif page == "Oyuncu Seçimine Göre":
-        cast_name = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale):")
+        cast_name = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale, Elijah Wood, Şener Şen):")
 
         if cast_name:
             recommendations = cast_based_recommender_tmdb_f(df, cast_name)
