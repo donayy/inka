@@ -127,7 +127,7 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + (m / (m + x['numVotes']) * C),
         axis=1)
     qualified = qualified.drop_duplicates(subset='title')
-    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating']].reset_index(drop=True)
+    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
 
 
 def get_director_suggestions(partial_input, all_directors):
