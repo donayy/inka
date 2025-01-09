@@ -109,7 +109,14 @@ def get_genre_suggestions(partial_input, all_genres):
 
 # Director-based recommender function
 def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
-    # Drop NaN and get unique director choices
+    # Check for 'numVotes' and 'averageRating' columns
+    if 'numVotes' not in dataframe.columns or 'averageRating' not in dataframe.columns:
+        return "Hata: 'numVotes' veya 'averageRating' sütunu bulunamadı."
+    
+    # Normalize 'directors' column
+    dataframe['directors'] = dataframe['directors'].fillna('').astype(str)
+    
+    # Get all unique directors
     director_choices = dataframe['directors'].dropna().unique()
 
     # Find the closest match
@@ -118,28 +125,28 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
         return f"'{director}' isimli bir yönetmen bulunamadı."
     
     closest_match = closest_match[0]
-    
-    # Filter the dataframe by the closest matched director
+
+    # Filter dataframe by matched director
     df = dataframe[dataframe['directors'] == closest_match]
     if df.empty:
         return f"'{closest_match}' yönetmeni için yeterli veri bulunamadı."
     
     # Calculate weighted rating
-    vote_counts = df['numVotes'].dropna().astype('int')
+    num_votes = df['numVotes'].dropna().astype('int')
     vote_averages = df['averageRating'].dropna().astype('float')
-    if vote_counts.empty or vote_averages.empty:
+    if num_votes.empty or vote_averages.empty:
         return f"'{closest_match}' yönetmeni için oy bilgisi eksik."
-    
+
     C = vote_averages.mean()
-    m = vote_counts.quantile(percentile)
-    
+    m = num_votes.quantile(percentile)
+
     qualified = df[(df['numVotes'] >= m) & (df['averageRating'].notnull())][
         ['title', 'averageRating', 'poster_url']]
     qualified['wr'] = qualified.apply(
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) +
                   (m / (m + x['numVotes']) * C), axis=1)
-    
     qualified = qualified.sort_values('wr', ascending=False).head(10)
+
     return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
 
 
@@ -488,11 +495,12 @@ try:
                 for _, row in recommendations.iterrows():
                     st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']})")
                     if row['poster_url']:
-                        st.image(row['poster_url'], width=500)
+                        st.image(row['poster_url'], width=200)
                     else:
                         st.write("Poster bulunamadı.")
             else:
                 st.write(recommendations)
+
 
 
 
