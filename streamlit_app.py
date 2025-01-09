@@ -561,7 +561,7 @@ try:
 
     
     elif page == "Girdiğiniz Filme Göre Öneriler":
-        movie_title = st.text_input("Bir film ismi girin (örneğin, Inception, Deadpool, Charlie's Angels: Full Throttle):")
+        movie_title = st.text_input("Bir film ismi girin (örneğin, Inception, Deadpool, Tosun Paşa):")
 
         if movie_title:
             try:
