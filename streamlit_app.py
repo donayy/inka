@@ -223,7 +223,7 @@ def keyword_based_recommender(keyword, dataframe, top_n=10):
         dataframe['overview'].str.lower().str.contains(keyword, na=False) |
         dataframe['keywords'].str.lower().str.contains(keyword, na=False) |
         dataframe['tagline'].str.lower().str.contains(keyword, na=False)]
-    filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
+    filtered_df = filtered_df.sort_values(by=['popularity', 'averageRating'], ascending=[False, False])
     return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url', 'overview', 'tagline']].reset_index(drop=True)
 
 
