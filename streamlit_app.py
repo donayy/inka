@@ -49,33 +49,57 @@ def simple_recommender_tmdb(df, percentile=0.95):
 
 
 # Genre-based recommender function
-def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
-    director_choices = dataframe['directors'].dropna().unique()
-    closest_match = difflib.get_close_matches(director, director_choices, n=1, cutoff=0.8)
-    if not closest_match:
-        return f"Warning: {director} isimli bir yönetmen bulunamadı."
-    closest_match = closest_match[0]
-    df = dataframe[dataframe['directors'] == closest_match]
-    numVotess = df[df['numVotes'].notnull()]['numVotes'].astype('int')
-    vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('int')
+def genre_based_recommender_tmbd_f(df, genre, percentile=0.90):
+    genre = genre.lower()
+
+    # Normalize the genres column
+    df['genres'] = df['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
+
+    # Get all unique genres
+    all_genres = df['genres'].explode().unique()
+    if not all_genres.size:
+        return "No genres available in the dataset."
+
+    # Find the closest matching genre
+    closest_match = process.extractOne(genre, all_genres, scorer=fuzz.ratio)
+    if closest_match:
+        closest_match = closest_match[0]
+    else:
+        return f"No matching genres found for: {genre}"
+
+    # Filter movies by the matched genre
+    df_filtered = df[df['genres'].apply(lambda x: closest_match in x)]
+    if df_filtered.empty:
+        return f"No movies found for the genre: {closest_match}"
+
+    # Calculate weighted rating
+    num_votes = df_filtered[df_filtered['numVotes'].notnull()]['numVotes'].astype('int')
+    vote_averages = df_filtered[df_filtered['averageRating'].notnull()]['averageRating'].astype('float')
     C = vote_averages.mean()
-    m = numVotess.quantile(percentile)
-    qualified = df[(df['numVotes'] >= m) & (df['numVotes'].notnull()) & 
-                   (df['averageRating'].notnull())][['title', 'numVotes', 'averageRating', 'popularity', 'poster_url']]
+    m = num_votes.quantile(percentile)
+
+    qualified = df_filtered[(df_filtered['numVotes'] >= m) &
+                            (df_filtered['numVotes'].notnull()) &
+                            (df_filtered['averageRating'].notnull())][
+        ['title', 'numVotes', 'averageRating', 'poster_url']]
+    
+    if qualified.empty:
+        return f"No qualified movies found for the genre: {closest_match}"
+
     qualified['numVotes'] = qualified['numVotes'].astype('int')
-    qualified['averageRating'] = qualified['averageRating'].astype('int')
+    qualified['averageRating'] = qualified['averageRating'].astype('float')
     qualified['wr'] = qualified.apply(
-        lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + (m / (m + x['numVotes']) * C),
-        axis=1)
+        lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) +
+                  (m / (m + x['numVotes']) * C),
+        axis=1
+    )
+
+    # Sort by weighted rating and drop duplicates
     qualified = qualified.drop_duplicates(subset='title')
-    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
+    qualified = qualified.sort_values('wr', ascending=False)
 
-
-
-def get_director_suggestions(partial_input, all_directors):
-    partial_input = partial_input.lower()
-    suggestions = [director for director in all_directors if partial_input in director.lower()]
-    return suggestions
+    # Return the top 10 movies
+    return qualified.head(10).reset_index(drop=True)
 
     
 def get_genre_suggestions(partial_input, all_genres):
