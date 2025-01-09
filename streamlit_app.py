@@ -516,7 +516,7 @@ try:
                     for _, row in recommendations.iterrows():
                         st.write(f"**{row['Film Adı']}** (IMDB Rating: {row['IMDB Rating']:.1f})")
                         if row['Poster URL'] and row['Poster URL'] != 'Poster bulunamadı':
-                            st.image(row['Poster URL'], width=200)
+                            st.image(row['Poster URL'], width=500)
                         else:
                             st.write("Poster bulunamadı.")
             except Exception as e:
