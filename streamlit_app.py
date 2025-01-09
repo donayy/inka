@@ -481,9 +481,21 @@ try:
 
     elif page == "Oyuncu Seçimine Göre":
         cast_name = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale):")
+
         if cast_name:
             recommendations = cast_based_recommender_tmdb_f(df, cast_name)
-            st.table(recommendations)
+
+            if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
+                st.write(f"'{cast_name}' oyuncusunun yer aldığı filmler:")
+                for _, row in recommendations.iterrows():
+                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
+                    if row['poster_url']:
+                        st.image(row['poster_url'], width=200)
+                    else:
+                        st.write("Poster bulunamadı.")
+            else:
+                st.write(recommendations)
+
 
     
     elif page == "Film Benzeri Öneriler":
