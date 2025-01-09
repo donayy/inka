@@ -108,7 +108,7 @@ def get_genre_suggestions(partial_input, all_genres):
     return suggestions
 
 # Director-based recommender function
-def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
+def director_based_recommender(director, dataframe, percentile=0.90):
     director_choices = dataframe['directors'].dropna().unique()
     closest_match = difflib.get_close_matches(director, director_choices, n=1, cutoff=0.8)
     if not closest_match:
@@ -465,7 +465,7 @@ try:
                 for suggestion in suggestions[:5]:  
                     st.write(f"- {suggestion.capitalize()}")
                 closest_match = suggestions[0]
-                recommendations = director_based_recommender_tmbd_f(df, closest_match)
+                recommendations = director_based_recommender(df, closest_match)
                 if isinstance(recommendations, pd.DataFrame):
                     st.write(f"'{closest_match.capitalize()}' yönetmeninden öneriler:")
                     for _, row in recommendations.iterrows():
