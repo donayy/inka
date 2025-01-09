@@ -187,7 +187,8 @@ def content_based_recommender(title, dataframe, top_n=10):
     if 'title' not in dataframe.columns:
         raise ValueError("'title' sütunu veri çerçevesinde bulunamadı.")
 
-    target_movie = dataframe[dataframe['title'] == title]
+    # Search for the title in both 'title' and 'original_title'
+    target_movie = dataframe[(dataframe['title'] == title) | (dataframe['original_title'] == title)]
     if target_movie.empty:
         return pd.DataFrame(columns=['Film Adı', 'IMDB Rating', 'Poster URL'])
 
@@ -199,7 +200,7 @@ def content_based_recommender(title, dataframe, top_n=10):
     recommendations = []
 
     for _, row in dataframe.iterrows():
-        if row['title'] != title:
+        if row['title'] != title and row.get('original_title') != title:
             genres = set(row['genres']) if isinstance(row['genres'], list) else set(str(row['genres']).split(','))
             keywords = set(row['keywords']) if isinstance(row['keywords'], list) else set(str(row['keywords']).split(','))
 
@@ -222,9 +223,11 @@ def content_based_recommender(title, dataframe, top_n=10):
                 'Film Adı': film_title,
                 'IMDB Rating': row['averageRating'],
                 'Poster URL': poster_url,
-                'Total Score': total_score})
+                'Total Score': total_score
+            })
 
     sorted_recommendations = sorted(recommendations, key=lambda x: x['Total Score'], reverse=True)[:top_n]
+
     return pd.DataFrame(sorted_recommendations).drop(columns=['Total Score']).reset_index(drop=True)
 
 
