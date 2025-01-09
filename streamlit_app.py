@@ -11,17 +11,15 @@ POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
 @st.cache_data
 def load_data():
-    # Load dataset
     df = pd.read_csv(DATA_URL, on_bad_lines="skip")
     
-    # Normalize the genres column
+    # Normalize the genres, keywords and overview column
     if 'genres' in df.columns:
         df['genres'] = df['genres'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
     else:
         st.error("'genres' kolonu bulunamadı. Lütfen verinizi kontrol edin.")
-        return pd.DataFrame()  # return an empty dataset
+        return pd.DataFrame() 
     
-    # Normalize the keywords and overview columns
     df['keywords'] = df['keywords'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
     df['overview'] = df['overview'].fillna('').astype(str)
     
