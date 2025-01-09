@@ -193,7 +193,7 @@ def content_based_recommender(title, dataframe, top_n=10):
 
             genre_score = jaccard_similarity(target_genres, genres)
             keyword_score = jaccard_similarity(target_keywords, keywords)
-            total_score = genre_score * 0.7 + keyword_score * 0.3
+            total_score = genre_score * 0.5 + keyword_score * 0.5
 
             if pd.isna(row['averageRating']):
                 continue
