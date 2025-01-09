@@ -172,6 +172,9 @@ def jaccard_similarity(set1, set2):
     return intersection / union if union != 0 else 0
 
 def content_based_recommender(title, dataframe, top_n=10):
+    if 'title' not in dataframe.columns:
+        raise ValueError("'title' sütunu veri çerçevesinde bulunamadı.")
+
     target_movie = dataframe[dataframe['title'] == title]
     if target_movie.empty:
         return pd.DataFrame(columns=['Film Adı', 'IMDB Rating'])
@@ -187,7 +190,7 @@ def content_based_recommender(title, dataframe, top_n=10):
         if row['title'] != title:
             genres = set(row['genres']) if isinstance(row['genres'], list) else set(str(row['genres']).split(','))
             keywords = set(row['keywords']) if isinstance(row['keywords'], list) else set(str(row['keywords']).split(','))
-            
+
             genre_score = jaccard_similarity(target_genres, genres)
             keyword_score = jaccard_similarity(target_keywords, keywords)
             total_score = genre_score * 0.7 + keyword_score * 0.3
@@ -200,6 +203,7 @@ def content_based_recommender(title, dataframe, top_n=10):
     sorted_recommendations = sorted(recommendations, key=lambda x: x['Total Score'], reverse=True)[:top_n]
 
     return pd.DataFrame(sorted_recommendations).drop(columns=['Total Score']).reset_index(drop=True)
+
 
 # Keyword-based recommender function
 def keyword_based_recommender(keyword, dataframe, top_n=10):
@@ -496,13 +500,13 @@ try:
         if movie_title:
             try:
                 recommendations = content_based_recommender(movie_title, df)
-            
+    
                 if recommendations.empty:
                     st.write(f"'{movie_title}' ile ilgili öneri bulunamadı.")
                 else:
                     st.write(f"'{movie_title}' benzeri filmler:")
                     for _, row in recommendations.iterrows():
-                        st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
+                        st.write(f"**{row['Film Adı']}** (IMDB Rating: {row['IMDB Rating']:.1f})")
                         if row.get('poster_url'):
                             st.image(row['poster_url'], width=200)
                         else:
