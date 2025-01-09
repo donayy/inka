@@ -545,7 +545,17 @@ try:
         keyword = st.text_input("Bir kelime girin (örneğin, Christmas):")
         if keyword:
             recommendations = keyword_based_recommender(keyword, df)
-            st.table(recommendations)
+        
+            if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
+                st.write(f"'{keyword}' ile ilgili önerilen filmler:")
+                for _, row in recommendations.iterrows():
+                    st.write(f"**{row['title']}**")  # Film başlığını yazdır
+                    if row['poster_url']:
+                        st.image(row['poster_url'], width=200)  # Poster görselini göster
+                    else:
+                        st.write("Poster bulunamadı.")  # Eksik poster mesajı
+            else:
+                st.write(f"'{keyword}' ile ilgili öneri bulunamadı.")
 
     elif page == "Ruh Hali Önerileri":
         mood = st.text_input("Bir ruh hali girin (örneğin: mutlu, üzgün, maceracı, korkutucu, heyecanlı) / Enter a mood (e.g., happy, sad, adventurous, scary, excited):")
