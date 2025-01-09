@@ -49,7 +49,7 @@ def simple_recommender_tmdb(df, percentile=0.95):
 
 
 # Genre-based recommender function
-def genre_based_recommender_tmbd_f(df, genre, percentile=0.90):
+def genre_based_recommender(df, genre, percentile=0.90):
     genre = genre.lower()
 
     # Normalize the genres column
@@ -458,7 +458,7 @@ try:
     elif page == "Yönetmen Seçimine Göre":
         director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
         if director_input:
-            recommendations = director_based_recommender_tmdb_f(director_input, df)
+            recommendations = director_based_recommender(director_input, df)
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
                 st.write(f"'{director_input}' yönetmeninden öneriler:")
                 for _, row in recommendations.iterrows():
