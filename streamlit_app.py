@@ -216,16 +216,16 @@ def content_based_recommender(title, dataframe, top_n=10):
 # Keyword-based recommender function
 def keyword_based_recommender(keyword, dataframe, top_n=10):
     keyword = keyword.lower()
-    
     dataframe['overview'] = dataframe['overview'].astype(str)
     dataframe['keywords'] = dataframe['keywords'].astype(str)
-    
+    dataframe['tagline'] = dataframe['tagline'].astype(str)
     filtered_df = dataframe[
         dataframe['overview'].str.lower().str.contains(keyword, na=False) |
-        dataframe['keywords'].str.lower().str.contains(keyword, na=False)]
+        dataframe['keywords'].str.lower().str.contains(keyword, na=False) |
+        dataframe['tagline'].str.lower().str.contains(keyword, na=False)]
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
+    return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url', 'overview', 'tagline']].reset_index(drop=True)
 
-    return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url', 'overview']].reset_index(drop=True)
 
 
 # Mood-based recommender function
