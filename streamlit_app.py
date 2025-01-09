@@ -109,6 +109,11 @@ def get_genre_suggestions(partial_input, all_genres):
 
 # Director-based recommender function
 def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
+    required_columns = ['directors', 'numVotes', 'averageRating', 'poster_url', 'title']
+    missing_columns = [col for col in required_columns if col not in dataframe.columns]
+    if missing_columns:
+        return f"Hata: Eksik sütunlar: {', '.join(missing_columns)}"
+
     dataframe['directors'] = dataframe['directors'].fillna('').astype(str)
     
     director_choices = dataframe['directors'].dropna().unique()
@@ -121,18 +126,23 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
     if df.empty:
         return f"'{closest_match}' isimli yönetmenin yeterli filmi bulunamadı."
 
-    num_votes = df[df['numVotes'].notnull()]['numVotes'].astype('int')
-    vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('float')
+    try:
+        df = df[df['numVotes'].notnull() & df['averageRating'].notnull()]
+        num_votes = df['numVotes'].astype('int')
+        vote_averages = df['averageRating'].astype('float')
+    except Exception as e:
+        return f"Hata: Veri türü dönüştürme sırasında sorun oluştu: {e}"
+
     C = vote_averages.mean()
     m = num_votes.quantile(percentile)
+    qualified = df[(num_votes >= m)][['title', 'averageRating', 'poster_url']]
 
-    qualified = df[(df['numVotes'] >= m) & (df['averageRating'].notnull())][
-        ['title', 'averageRating', 'poster_url']]
     qualified['wr'] = qualified.apply(
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) +
-                  (m / (m + x['numVotes']) * C), axis=1)
-    qualified = qualified.sort_values('wr', ascending=False).head(10)
+                  (m / (m + x['numVotes']) * C), axis=1
+    )
 
+    qualified = qualified.sort_values('wr', ascending=False).head(10)
     return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
 
 
@@ -469,11 +479,13 @@ try:
 
 
     elif page == "Yönetmen Seçimine Göre":
-        director = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
-        if director:
-            recommendations = director_based_recommender_tmdb_f(director, df)
+        director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
+    
+        if director_input:
+            recommendations = director_based_recommender_tmdb_f(director_input, df)
+        
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
-                st.write(f"'{director}' yönetmeninden öneriler:")
+                st.write(f"'{director_input}' yönetmeninden öneriler:")
                 for _, row in recommendations.iterrows():
                     st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']})")
                     if row['poster_url']:
@@ -482,6 +494,7 @@ try:
                         st.write("Poster bulunamadı.")
             else:
                 st.write(recommendations)
+
 
 
 
