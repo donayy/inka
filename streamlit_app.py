@@ -451,7 +451,7 @@ try:
     page = st.sidebar.radio(
     "Hangi türde öneri istiyorsunuz?", 
     options=["Popüler Filmler", "Türe Göre Öneriler", "Yönetmen Seçimine Göre",
-             "Oyuncu Seçimine Göre", "Film Benzeri Öneriler", "Anahtar Kelimelere Göre",
+             "Oyuncu Seçimine Göre", "Girdiğiniz Filme Göre Öneriler", "Anahtar Kelimelere Göre",
              "Ruh Hali Önerileri", "Hakkımızda"])
 
 
@@ -550,7 +550,7 @@ try:
 
 
     
-    elif page == "Film Benzeri Öneriler":
+    elif page == "Girdiğiniz Filme Göre Öneriler":
         movie_title = st.text_input("Bir film ismi girin (örneğin, Inception, Deadpool, Charlie's Angels: Full Throttle):")
 
         if movie_title:
