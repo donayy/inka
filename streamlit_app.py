@@ -283,7 +283,7 @@ def mood_based_recommender(mood, dataframe, top_n=10):
     
     # Sort by popularity and return the top results
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
-    return filtered_df.head(top_n)[['title', 'poster_url']].reset_index(drop=True)
+    return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
    
 
 
@@ -557,7 +557,7 @@ try:
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
                 st.write(f"'{mood}' ruh hali için önerilen filmler:")
                 for _, row in recommendations.iterrows():
-                    st.write(f"**{row['title']}**")  # Film başlığını yazdır
+                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")  # Başlık ve IMDB puanı
                     if row['poster_url']:
                         st.image(row['poster_url'], width=500)  # Görseli göster
                     else:
