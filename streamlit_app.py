@@ -31,6 +31,7 @@ def load_data():
     
     return df
 
+# Translator for summaries
 translator = Translator()
 def translate_text(text, dest_language='tr'):
     try:
@@ -99,8 +100,7 @@ def genre_based_recommender(df, genre, percentile=0.90):
     qualified['wr'] = qualified.apply(
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) +
                   (m / (m + x['numVotes']) * C),
-        axis=1
-    )
+        axis=1)
 
     # Sort by weighted rating and drop duplicates
     qualified = qualified.drop_duplicates(subset='title')
@@ -125,7 +125,6 @@ def director_based_recommender(director, dataframe, percentile=0.90):
     else:
         closest_match = None
         recommendations = pd.DataFrame()  
-
 
     closest_match = closest_matches[0]
     df = dataframe[dataframe['directors'] == closest_match]
@@ -213,17 +212,20 @@ def content_based_recommender(title, dataframe, top_n=10):
 
             poster_url = row['poster_url'] if 'poster_url' in row and pd.notna(row['poster_url']) else 'Poster bulunamadı'
 
+            # Check for original language and include original title if not English
+            if row.get('original_language') != 'en' and pd.notna(row.get('original_title')):
+                film_title = f"{row['title']} / {row['original_title']}"
+            else:
+                film_title = row['title']
+
             recommendations.append({
-                'Film Adı': row['title'], 
-                'IMDB Rating': row['averageRating'], 
-                'Poster URL': poster_url, 
-                'Total Score': total_score
-            })
+                'Film Adı': film_title,
+                'IMDB Rating': row['averageRating'],
+                'Poster URL': poster_url,
+                'Total Score': total_score})
 
     sorted_recommendations = sorted(recommendations, key=lambda x: x['Total Score'], reverse=True)[:top_n]
-
     return pd.DataFrame(sorted_recommendations).drop(columns=['Total Score']).reset_index(drop=True)
-
 
 
 # Keyword-based recommender function
@@ -234,11 +236,9 @@ def keyword_based_recommender(keyword, dataframe, top_n=10):
     dataframe['overview'] = dataframe['overview'].astype(str)
     dataframe['keywords'] = dataframe['keywords'].astype(str)
     
-    # Filter the dataframe
     filtered_df = dataframe[
         dataframe['overview'].str.lower().str.contains(keyword, na=False) |
-        dataframe['keywords'].str.lower().str.contains(keyword, na=False)
-    ]
+        dataframe['keywords'].str.lower().str.contains(keyword, na=False)]
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
 
     return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
@@ -260,8 +260,7 @@ mood_to_genre = {
     "dark": ["thriller", "horror", "crime", "drama"],
     "uplifting": ["family", "musical", "adventure", "comedy"],
     "tense": ["thriller", "crime", "mystery", "horror"],
-    "magical": ["fantasy", "sci-fi", "animation", "adventure"]
-}
+    "magical": ["fantasy", "sci-fi", "animation", "adventure"]}
 
 mood_translation = {
     "mutlu": "happy",
@@ -279,8 +278,7 @@ mood_translation = {
     "karanlık": "dark",
     "moral verici": "uplifting",
     "gergin": "tense",
-    "büyülü": "magical"
-}
+    "büyülü": "magical"}
 
 def mood_based_recommender(mood, dataframe, top_n=10):
     # Get genres related to the mood
@@ -291,10 +289,7 @@ def mood_based_recommender(mood, dataframe, top_n=10):
     # Ensure 'genres' is processed as a list
     dataframe['genres'] = dataframe['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
     
-    # Filter movies where any genre matches the mood genres
     filtered_df = dataframe[dataframe['genres'].apply(lambda x: any(g.strip().lower() in genres for g in x))]
-    
-    # Sort by popularity and return the top results
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
     return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
    
@@ -316,9 +311,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-
-
 
 st.markdown(
     """
@@ -571,7 +563,7 @@ try:
         if movie_title:
             try:
                 recommendations = content_based_recommender(movie_title, df)
-    
+
                 if recommendations.empty:
                     st.write(f"'{movie_title}' ile ilgili öneri bulunamadı.")
                 else:
