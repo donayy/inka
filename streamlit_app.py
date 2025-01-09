@@ -108,8 +108,6 @@ def get_genre_suggestions(partial_input, all_genres):
     return suggestions
 
 # Director-based recommender function
-df = df[df['directors'].notna()]
-
 def director_based_recommender(director, dataframe, percentile=0.90):
     director_choices = sorted(set(director for directors in dataframe['directors'] for director in directors))
 
