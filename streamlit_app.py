@@ -39,12 +39,12 @@ def simple_recommender_tmdb(df, percentile=0.95):
     m = num_votes.quantile(percentile)
     df['year'] = pd.to_datetime(df['release_date'], errors='coerce').dt.year
     qualified = df[(df['numVotes'] >= m) & (df['averageRating'].notnull())][
-        ['title', 'year', 'numVotes', 'averageRating', 'poster_url']]
+        ['title', 'year', 'numVotes', 'averageRating', 'poster_url', 'overview']]
     qualified['wr'] = qualified.apply(
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + 
                   (m / (m + x['numVotes']) * C), axis=1)
     qualified = qualified.sort_values('wr', ascending=False)
-    return qualified.head(10)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
+    return qualified.head(10)[['title', 'averageRating', 'poster_url', 'overview']].reset_index(drop=True)
 
 
 
@@ -451,11 +451,15 @@ try:
         if st.button("En beğenilen 10 film için tıklayın"):
             recommendations_simple = simple_recommender_tmdb(df)
             for _, row in recommendations_simple.iterrows():
-                st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']})")
+                st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
                 if row['poster_url']:
                     st.image(row['poster_url'], width=500)
                 else:
                     st.write("Poster bulunamadı.")
+                if row['overview']:
+                    st.write(f"**Özet:** {row['overview']}")
+                else:
+                    st.write("Özet bulunamadı.")
 
     elif page == "Türe Göre Öneriler":
         df['genres'] = df['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
