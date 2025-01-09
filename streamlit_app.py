@@ -457,7 +457,7 @@ try:
                 else:
                     st.write("Poster bulunamadı.")
                 if row['overview']:
-                    st.write(f"**Özet:** {row['overview']}")
+                    st.write(f"**Overview:** {row['overview']}")
                 else:
                     st.write("Özet bulunamadı.")
 
