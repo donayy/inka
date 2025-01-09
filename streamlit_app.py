@@ -225,7 +225,8 @@ def keyword_based_recommender(keyword, dataframe, top_n=10):
         dataframe['keywords'].str.lower().str.contains(keyword, na=False)]
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
 
-    return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
+    return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url', 'overview']].reset_index(drop=True)
+
 
 # Mood-based recommender function
 mood_to_genre = {
@@ -572,9 +573,15 @@ try:
                     if row['poster_url']:
                         st.image(row['poster_url'], width=500) 
                     else:
-                        st.write("Poster bulunamadı.")  
+                        st.write("Poster bulunamadı.")
+                    if row['overview']:
+                        translated_overview = translate_text(row['overview'], dest_language='tr')
+                        st.write(f"**Özet:** {translated_overview}")
+                    else:
+                        st.write("Özet bulunamadı.")  
             else:
                 st.write(f"'{keyword}' ile ilgili öneri bulunamadı.")
+
 
     elif page == "Ruh Haline Göre Öneriler":
         mood = st.text_input("Bir ruh hali girin (örneğin: mutlu, üzgün, maceracı, korkutucu, heyecanlı) / Enter a mood (e.g., happy, sad, adventurous, scary, excited):")
