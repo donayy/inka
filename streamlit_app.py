@@ -108,7 +108,10 @@ def get_genre_suggestions(partial_input, all_genres):
     return suggestions
 
 # Director-based recommender function
-df['directors'] = df['directors'].apply(lambda x: [] if pd.isna(x) else x if isinstance(x, list) else [x])
+df['directors'] = df['directors'].apply(
+    lambda x: [] if pd.isna(x) else x if isinstance(x, list) else str(x).split(',') if isinstance(x, str) else []
+)
+
 def director_based_recommender(director, dataframe, percentile=0.90):
     director_choices = sorted(set(director for directors in dataframe['directors'] for director in directors))
     closest_match = difflib.get_close_matches(director.lower(), [d.lower() for d in director_choices], n=1, cutoff=0.8)
