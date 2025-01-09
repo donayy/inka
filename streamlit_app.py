@@ -542,7 +542,7 @@ try:
 
 
     elif page == "Anahtar Kelimelere Göre":
-        keyword = st.text_input("Bir kelime girin (örneğin, Christmas):")
+        keyword = st.text_input("Bir kelime girin (örneğin, Butterfly):")
         if keyword:
             recommendations = keyword_based_recommender(keyword, df)
         
