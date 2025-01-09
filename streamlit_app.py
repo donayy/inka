@@ -120,7 +120,7 @@ def director_based_recommender(director, dataframe, percentile=0.90):
     director_choices = dataframe['directors'].dropna().unique()
     closest_match = difflib.get_close_matches(director, director_choices, n=1, cutoff=0.8)
     if not closest_match:
-        return f"Warning: {director} isimli bir yönetmen bulunamadı."
+        return f"Hata: {director} isimli bir yönetmen bulunamadı."
     closest_match = closest_match[0]
     df = dataframe[dataframe['directors'] == closest_match]
     numVotess = df[df['numVotes'].notnull()]['numVotes'].astype('int')
