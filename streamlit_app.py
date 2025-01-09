@@ -158,13 +158,13 @@ def cast_based_recommender(df, cast_name, percentile=0.90):
     qualified = df_cast[(df_cast['numVotes'] >= m) &
                         (df_cast['numVotes'].notnull()) &
                         (df_cast['averageRating'].notnull())][
-        ['title', 'original_title', 'original_language', 'numVotes', 'averageRating', 'popularity', 'poster_url']]
+        ['title', 'original_title', 'original_language', 'numVotes', 'averageRating', 'popularity', 'poster_url', 'overview']]
     qualified['wr'] = qualified.apply(
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + (
                     m / (m + x['numVotes']) * C),
         axis=1)
     qualified = qualified.drop_duplicates(subset='title')
-    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'original_title', 'original_language', 'numVotes', 'averageRating', 'popularity', 'poster_url']].reset_index(drop=True)
+    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'original_title', 'original_language', 'numVotes', 'averageRating', 'popularity', 'poster_url', 'overview']].reset_index(drop=True)
 
 # Content-based recommender using Jaccard similarity
 def jaccard_similarity(set1, set2):
@@ -526,8 +526,13 @@ try:
                         st.image(row['poster_url'], width=500)
                     else:
                         st.write("Poster bulunamadı.")
+                    if row['overview']:
+                        translated_overview = translate_text(row['overview'], dest_language='tr')
+                        st.write(f"**Özet:** {translated_overview}")
+                    else:
+                        st.write("Özet bulunamadı.")
             else:
-                st.write(recommendations)
+                st.write("Hiçbir öneri bulunamadı.")
 
     
     elif page == "Girdiğiniz Filme Göre Öneriler":
