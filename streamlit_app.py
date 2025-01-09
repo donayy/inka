@@ -228,7 +228,7 @@ def keyword_based_recommender(keyword, dataframe, top_n=10):
     ]
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
 
-    return filtered_df.head(top_n)[['title', 'poster_url']].reset_index(drop=True)
+    return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
 
 # Mood-based recommender function
 mood_to_genre = {
