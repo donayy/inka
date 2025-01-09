@@ -551,7 +551,7 @@ try:
                 for _, row in recommendations.iterrows():
                     st.write(f"**{row['title']}**")  # Film başlığını yazdır
                     if row['poster_url']:
-                        st.image(row['poster_url'], width=200)  # Poster görselini göster
+                        st.image(row['poster_url'], width=500)  # Poster görselini göster
                     else:
                         st.write("Poster bulunamadı.")  # Eksik poster mesajı
             else:
