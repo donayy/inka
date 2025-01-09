@@ -284,7 +284,7 @@ def mood_based_recommender(mood, dataframe, top_n=10):
     # Sort by popularity and return the top results
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
     return filtered_df.head(top_n)[['title', 'poster_url']].reset_index(drop=True)
-    
+   
 
 
 # Streamlit App
@@ -553,13 +553,17 @@ try:
         st.write(f"Options : happy, sad, adventurous, scary, excited, relaxed, curious, nostalgic, inspired, romantic, thoughtful, funny, dark, uplifting, tense, magical")
         if mood:
             mood_in_english = mood_translation.get(mood.lower(), mood.lower())
-            recommendations = mood_based_recommender(mood_in_english, df)
+            recommendations = mood_based_recommender(mood_in_english, df)   
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
-                st.table(recommendations)
+                st.write(f"'{mood}' ruh hali için önerilen filmler:")
+                for _, row in recommendations.iterrows():
+                    st.write(f"**{row['title']}**")  # Film başlığını yazdır
+                    if row['poster_url']:
+                        st.image(row['poster_url'], width=200)  # Görseli göster
+                    else:
+                        st.write("Poster bulunamadı.")  # Görsel eksikse mesaj göster
             else:
                 st.write(f"'{mood}' ruh hali için öneri bulunamadı.")
-
-
     
 
     elif page == "Hakkımızda":
