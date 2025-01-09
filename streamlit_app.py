@@ -250,6 +250,24 @@ mood_to_genre = {
     "magical": ["fantasy", "sci-fi", "animation", "adventure"]
 }
 
+mood_translation = {
+    "mutlu": "happy",
+    "üzgün": "sad",
+    "maceracı": "adventurous",
+    "korkutucu": "scary",
+    "heyecanlı": "excited",
+    "rahatlamış": "relaxed",
+    "meraklı": "curious",
+    "nostaljik": "nostalgic",
+    "ilham verici": "inspired",
+    "romantik": "romantic",
+    "düşünceli": "thoughtful",
+    "komik": "funny",
+    "karanlık": "dark",
+    "moral verici": "uplifting",
+    "gergin": "tense",
+    "büyülü": "magical"
+}
 
 def mood_based_recommender(mood, dataframe, top_n=10):
     # Get genres related to the mood
@@ -530,11 +548,14 @@ try:
             st.table(recommendations)
 
     elif page == "Ruh Hali Önerileri":
-        mood = st.text_input("Bir ruh hali girin (happy, sad, adventurous, scary, excited, relaxed, curious, nostalgic, inspired, romantic, thoughtful, funny, dark, uplifting, tense, magical):")
+        mood = st.text_input("Bir ruh hali girin (örneğin: mutlu, üzgün, maceracı, korkutucu, heyecanlı):")
         if mood:
-            recommendations = mood_based_recommender(mood, df)
-            st.table(recommendations)
-
+            mood_in_english = mood_translation.get(mood.lower(), mood.lower())
+            recommendations = mood_based_recommender(mood_in_english, df)
+            if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
+                st.table(recommendations)
+            else:
+                st.write(f"'{mood}' ruh hali için öneri bulunamadı.")
 
     
 
