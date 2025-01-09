@@ -109,41 +109,25 @@ def get_genre_suggestions(partial_input, all_genres):
 
 # Director-based recommender function
 def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
-    required_columns = ['directors', 'numVotes', 'averageRating', 'poster_url', 'title']
-    missing_columns = [col for col in required_columns if col not in dataframe.columns]
-    if missing_columns:
-        return f"Hata: Eksik sütunlar: {', '.join(missing_columns)}"
-
-    dataframe['directors'] = dataframe['directors'].fillna('').astype(str)
-    
     director_choices = dataframe['directors'].dropna().unique()
     closest_match = difflib.get_close_matches(director, director_choices, n=1, cutoff=0.8)
     if not closest_match:
         return f"Warning: {director} isimli bir yönetmen bulunamadı."
     closest_match = closest_match[0]
-
     df = dataframe[dataframe['directors'] == closest_match]
-    if df.empty:
-        return f"'{closest_match}' isimli yönetmenin yeterli filmi bulunamadı."
-
-    try:
-        df = df[df['numVotes'].notnull() & df['averageRating'].notnull()]
-        num_votes = df['numVotes'].astype('int')
-        vote_averages = df['averageRating'].astype('float')
-    except Exception as e:
-        return f"Hata: Veri türü dönüştürme sırasında sorun oluştu: {e}"
-
+    numVotess = df[df['numVotes'].notnull()]['numVotes'].astype('int')
+    vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('int')
     C = vote_averages.mean()
-    m = num_votes.quantile(percentile)
-    qualified = df[(num_votes >= m)][['title', 'averageRating', 'poster_url']]
-
+    m = numVotess.quantile(percentile)
+    qualified = df[(df['numVotes'] >= m) & (df['numVotes'].notnull()) & 
+                   (df['averageRating'].notnull())][['title', 'numVotes', 'averageRating', 'popularity', 'poster_url']]
+    qualified['numVotes'] = qualified['numVotes'].astype('int')
+    qualified['averageRating'] = qualified['averageRating'].astype('int')
     qualified['wr'] = qualified.apply(
-        lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) +
-                  (m / (m + x['numVotes']) * C), axis=1
-    )
-
-    qualified = qualified.sort_values('wr', ascending=False).head(10)
-    return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
+        lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + (m / (m + x['numVotes']) * C),
+        axis=1)
+    qualified = qualified.drop_duplicates(subset='title')
+    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating']].reset_index(drop=True)
 
 
 def get_director_suggestions(partial_input, all_directors):
@@ -487,9 +471,9 @@ try:
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
                 st.write(f"'{director_input}' yönetmeninden öneriler:")
                 for _, row in recommendations.iterrows():
-                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']})")
+                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
                     if row['poster_url']:
-                        st.image(row['poster_url'], width=200)
+                        st.image(row['poster_url'], width=500)
                     else:
                         st.write("Poster bulunamadı.")
             else:
