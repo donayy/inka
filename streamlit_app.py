@@ -478,7 +478,7 @@ try:
             suggestions = get_genre_suggestions(genre_input, all_genres)
             if suggestions:
                 st.write("Türler:")
-                    for suggestion in suggestions[:5]:  
+                for suggestion in suggestions[:5]:  
                     st.write(f"- {suggestion.capitalize()}")
                 closest_match = suggestions[0]
                 recommendations = genre_based_recommender(df, closest_match)
