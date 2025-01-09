@@ -198,10 +198,12 @@ def content_based_recommender(title, dataframe, top_n=10):
             if pd.isna(row['averageRating']):
                 continue
 
+            poster_url = row['poster_url'] if 'poster_url' in row and pd.notna(row['poster_url']) else 'Poster bulunamadı'
+
             recommendations.append({
                 'Film Adı': row['title'], 
                 'IMDB Rating': row['averageRating'], 
-                'Poster URL': row.get('poster_url', None), 
+                'Poster URL': poster_url, 
                 'Total Score': total_score
             })
 
