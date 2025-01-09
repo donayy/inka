@@ -448,7 +448,7 @@ try:
     elif page == "Türe Göre Öneriler":
         df['genres'] = df['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
         all_genres = sorted(set(genre.strip().lower() for genres in df['genres'] for genre in genres))
-        genre_input = st.text_input("Bir tür girin (örneğin, Action):")
+        genre_input = st.text_input("Bir tür girin (örneğin, Action, Science Fiction, Adventure):")
         if genre_input:
             suggestions = get_genre_suggestions(genre_input, all_genres)
             if suggestions:
