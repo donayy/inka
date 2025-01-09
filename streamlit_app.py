@@ -468,7 +468,7 @@ try:
                 for suggestion in suggestions[:5]:  
                     st.write(f"- {suggestion.capitalize()}")
                 closest_match = suggestions[0]
-                recommendations = genre_based_recommender_tmbd_f(df, closest_match)
+                recommendations = genre_based_recommender(df, closest_match)
                 if isinstance(recommendations, pd.DataFrame):
                     st.write(f"'{closest_match.capitalize()}' türündeki öneriler:")
                     for _, row in recommendations.iterrows():
