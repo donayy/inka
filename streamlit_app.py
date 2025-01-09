@@ -178,7 +178,7 @@ def content_based_recommender(title, dataframe, top_n=10):
     # Search for the title in both 'title' and 'original_title'
     target_movie = dataframe[(dataframe['title'] == title) | (dataframe['original_title'] == title)]
     if target_movie.empty:
-        return pd.DataFrame(columns=['Film Adı', 'IMDB Rating', 'Poster URL'])
+        return pd.DataFrame(columns=['Film Adı', 'IMDB Rating', 'Poster URL', 'Overview'])
 
     target_movie = target_movie.iloc[0]
     target_genres = set(target_movie['genres']) if isinstance(target_movie['genres'], list) else set(str(target_movie['genres']).split(','))
@@ -196,7 +196,8 @@ def content_based_recommender(title, dataframe, top_n=10):
             if pd.isna(row['averageRating']):
                 continue
             poster_url = row['poster_url'] if 'poster_url' in row and pd.notna(row['poster_url']) else 'Poster bulunamadı'
-            # Check for original language and include original title if not English
+            overview = row['overview'] if 'overview' in row and pd.notna(row['overview']) else 'Özet bulunamadı'
+
             if row.get('original_language') != 'en' and pd.notna(row.get('original_title')):
                 film_title = f"{row['title']} / {row['original_title']}"
             else:
@@ -205,6 +206,7 @@ def content_based_recommender(title, dataframe, top_n=10):
                 'Film Adı': film_title,
                 'IMDB Rating': row['averageRating'],
                 'Poster URL': poster_url,
+                'Overview': overview,
                 'Total Score': total_score})
 
     sorted_recommendations = sorted(recommendations, key=lambda x: x['Total Score'], reverse=True)[:top_n]
@@ -550,6 +552,11 @@ try:
                             st.image(row['Poster URL'], width=500)
                         else:
                             st.write("Poster bulunamadı.")
+                        if row['Overview'] != 'Özet bulunamadı':
+                            translated_overview = translate_text(row['Overview'], dest_language='tr')
+                            st.write(f"**Özet:** {translated_overview}")
+                        else:
+                            st.write("Özet bulunamadı.")
             except Exception as e:
                 st.error(f"Bir hata oluştu: {e}")
 
