@@ -549,7 +549,7 @@ try:
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
                 st.write(f"'{keyword}' ile ilgili önerilen filmler:")
                 for _, row in recommendations.iterrows():
-                    st.write(f"**{row['title']}**")  # Film başlığını yazdır
+                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")  # Film başlığını yazdır
                     if row['poster_url']:
                         st.image(row['poster_url'], width=500)  # Poster görselini göster
                     else:
