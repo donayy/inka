@@ -490,7 +490,7 @@ try:
                 for _, row in recommendations.iterrows():
                     st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
                     if row['poster_url']:
-                        st.image(row['poster_url'], width=200)
+                        st.image(row['poster_url'], width=500)
                     else:
                         st.write("Poster bulunamadı.")
             else:
