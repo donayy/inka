@@ -118,7 +118,7 @@ def get_genre_suggestions(partial_input, all_genres):
 # Director-based recommender function
 def director_based_recommender(director, dataframe, percentile=0.90):
     director_choices = dataframe['directors'].dropna().unique()
-    closest_matches = difflib.get_close_matches(director, director_choices, n=15, cutoff=0.5)
+    closest_matches = difflib.get_close_matches(director, director_choices, n=10, cutoff=0.7)
     if not closest_matches:
         return f"Hata: {director} isimli bir yönetmen bulunamadı."
 
