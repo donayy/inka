@@ -530,10 +530,13 @@ try:
             st.table(recommendations)
 
     elif page == "Ruh Hali Önerileri":
-        mood = st.text_input("Bir ruh hali girin (örneğin, happy, sad):")
+        mood = st.text_input("Bir ruh hali girin (happy, sad, adventurous, scary, excited, relaxed, curious, nostalgic, inspired, romantic, thoughtful, funny, dark, uplifting, tense, magical):")
         if mood:
             recommendations = mood_based_recommender(mood, df)
             st.table(recommendations)
+
+
+    
 
     elif page == "Hakkımızda":
         st.title("Hakkımızda")
