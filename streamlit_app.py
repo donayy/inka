@@ -270,10 +270,10 @@ def mood_based_recommender(mood, dataframe, top_n=10):
     if not genres:
         return f"No genres found for mood: {mood}"
     dataframe['genres'] = dataframe['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
-    
     filtered_df = dataframe[dataframe['genres'].apply(lambda x: any(g.strip().lower() in genres for g in x))]
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
-    return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
+    return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url', 'overview']].reset_index(drop=True)
+
    
 
 # Streamlit App
@@ -598,6 +598,11 @@ try:
                         st.image(row['poster_url'], width=500)  
                     else:
                         st.write("Poster bulunamadı.") 
+                    if row['overview']:
+                        translated_overview = translate_text(row['overview'], dest_language='tr')
+                        st.write(f"**Özet:** {translated_overview}")
+                    else:
+                        st.write("Özet bulunamadı.")
             else:
                 st.write(f"'{mood}' ruh hali için öneri bulunamadı.")
     
