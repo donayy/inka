@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 from rapidfuzz import fuzz, process  
 import difflib
+from googletrans import Translator
 
 # GitHub URL of dataset
 DATA_URL = "https://raw.githubusercontent.com/donayy/inka/refs/heads/main/movies_dataset.csv"
@@ -29,6 +30,13 @@ def load_data():
         df['poster_url'] = df['backdrop_path'].apply(lambda x: f"{POSTER_BASE_URL}{x}" if pd.notnull(x) else None)
     
     return df
+
+translator = Translator()
+def translate_text(text, dest_language='tr'):
+    try:
+        return translator.translate(text, dest=dest_language).text
+    except Exception as e:
+        return f"Çeviri başarısız: {e}"
 
 
 # Simple recommender function
@@ -457,7 +465,8 @@ try:
                 else:
                     st.write("Poster bulunamadı.")
                 if row['overview']:
-                    st.write(f"**Overview:** {row['overview']}")
+                    translated_overview = translate_text(row['overview'], dest_language='tr')
+                    st.write(f"**Özet (Türkçe):** {translated_overview}")
                 else:
                     st.write("Özet bulunamadı.")
 
