@@ -1,4 +1,5 @@
 # I.N.K.A. & Chill 🎥
+# 🌟 **Live Demo**: https://inka-and-chill.streamlit.app/ 🌟
 I.N.K.A. (Intelligent Network for Kinematic Advice), kullanıcıların ruh haline, tercih ettikleri türlere, yönetmenlere veya anahtar kelimelere göre film önerileri sunan yenilikçi bir film tavsiye sistemidir.
 
 Bu sistem, geniş bir veri kümesi üzerinde çalışarak hem popüler hem de kişiselleştirilmiş önerilerde bulunur. I.N.K.A., akıllı algoritmaları sayesinde izleme deneyiminizi en üst düzeye çıkarmayı hedefler.
