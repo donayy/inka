@@ -49,57 +49,69 @@ def simple_recommender_tmdb(df, percentile=0.95):
 
 
 # Genre-based recommender function
-def genre_based_recommender_tmbd_f(df, genre, percentile=0.90):
-    genre = genre.lower()
+def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
+    # Orijinal veri çerçevesini bozmamak için kopya oluşturun
+    df = dataframe.copy()
 
-    # Normalize the genres column
-    df['genres'] = df['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
+    # 'directors' sütununu normalize edin
+    df['directors'] = df['directors'].fillna('').astype(str)
 
-    # Get all unique genres
-    all_genres = df['genres'].explode().unique()
-    if not all_genres.size:
-        return "No genres available in the dataset."
+    # Yönetmen önerileri için tüm yönetmenleri alın
+    all_directors = df['directors'].unique()
 
-    # Find the closest matching genre
-    closest_match = process.extractOne(genre, all_genres, scorer=fuzz.ratio)
-    if closest_match:
-        closest_match = closest_match[0]
-    else:
-        return f"No matching genres found for: {genre}"
+    # Kullanıcının girdisine göre öneriler oluşturun
+    suggestions = get_director_suggestions(director, all_directors)
 
-    # Filter movies by the matched genre
-    df_filtered = df[df['genres'].apply(lambda x: closest_match in x)]
-    if df_filtered.empty:
-        return f"No movies found for the genre: {closest_match}"
+    if not suggestions:
+        return f"'{director}' ile başlayan bir yönetmen bulunamadı. Lütfen başka bir isim deneyin."
 
-    # Calculate weighted rating
-    num_votes = df_filtered[df_filtered['numVotes'].notnull()]['numVotes'].astype('int')
-    vote_averages = df_filtered[df_filtered['averageRating'].notnull()]['averageRating'].astype('float')
+    # İlk öneriyi seçin
+    closest_match = suggestions[0]
+
+    # Yönetmenle ilgili filmleri filtreleyin
+    df = df[df['directors'].str.contains(closest_match, case=False, na=False)]
+    if df.empty:
+        return f"'{closest_match}' isimli yönetmenin yeterli filmi bulunamadı."
+
+    # Gerekli sütunları kontrol edin
+    required_columns = ['numVotes', 'averageRating', 'title', 'poster_url']
+    for col in required_columns:
+        if col not in df.columns:
+            return f"Hata: '{col}' sütunu veri çerçevesinde bulunamadı."
+
+    # Eksik verileri filtreleyin
+    df = df[df['numVotes'].notnull() & df['averageRating'].notnull()]
+
+    if df.empty:
+        return f"'{closest_match}' yönetmenine ait yeterli veri bulunamadı."
+
+    # 'numVotes' ve 'averageRating' sütunlarını dönüştürün
+    df['numVotes'] = df['numVotes'].astype(int)
+    df['averageRating'] = df['averageRating'].astype(float)
+
+    # Ortalama ve eşik değeri hesaplayın
+    num_votes = df['numVotes']
+    vote_averages = df['averageRating']
     C = vote_averages.mean()
     m = num_votes.quantile(percentile)
 
-    qualified = df_filtered[(df_filtered['numVotes'] >= m) &
-                            (df_filtered['numVotes'].notnull()) &
-                            (df_filtered['averageRating'].notnull())][
-        ['title', 'numVotes', 'averageRating', 'poster_url']]
-    
-    if qualified.empty:
-        return f"No qualified movies found for the genre: {closest_match}"
-
-    qualified['numVotes'] = qualified['numVotes'].astype('int')
-    qualified['averageRating'] = qualified['averageRating'].astype('float')
-    qualified['wr'] = qualified.apply(
+    # Ağırlıklı puanları hesaplayın
+    df['wr'] = df.apply(
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) +
-                  (m / (m + x['numVotes']) * C),
-        axis=1
+                  (m / (m + x['numVotes']) * C), axis=1
     )
 
-    # Sort by weighted rating and drop duplicates
-    qualified = qualified.drop_duplicates(subset='title')
-    qualified = qualified.sort_values('wr', ascending=False)
+    # En iyi 10 filmi seçin
+    qualified = df.sort_values('wr', ascending=False).head(10)
 
-    # Return the top 10 movies
-    return qualified.head(10).reset_index(drop=True)
+    # Gerekli sütunları döndürün
+    return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
+
+
+def get_director_suggestions(partial_input, all_directors):
+    partial_input = partial_input.lower()
+    suggestions = [director for director in all_directors if partial_input in director.lower()]
+    return suggestions
 
     
 def get_genre_suggestions(partial_input, all_genres):
