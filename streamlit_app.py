@@ -452,7 +452,7 @@ try:
     "Hangi türde öneri istiyorsunuz?", 
     options=["Popüler Filmler", "Türe Göre Öneriler", "Yönetmen Seçimine Göre",
              "Oyuncu Seçimine Göre", "Girdiğiniz Filme Göre Öneriler", "Anahtar Kelimelere Göre",
-             "Ruh Hali Önerileri", "Hakkımızda"])
+             "Ruh Haline Göre Öneriler", "Hakkımızda"])
 
 
     if page == "Popüler Filmler":
@@ -597,7 +597,7 @@ try:
             else:
                 st.write(f"'{keyword}' ile ilgili öneri bulunamadı.")
 
-    elif page == "Ruh Hali Önerileri":
+    elif page == "Ruh Haline Göre Öneriler":
         mood = st.text_input("Bir ruh hali girin (örneğin: mutlu, üzgün, maceracı, korkutucu, heyecanlı) / Enter a mood (e.g., happy, sad, adventurous, scary, excited):")
         st.write(f"Seçenekler : mutlu,üzgün, maceracı, korkutucu, heyecanlı, rahatlamış, meraklı, nostaljik, ilham verici, romantik, düşünceli, komik, karanlık, moral verici, gergin, büyülü")
         st.write(f"Options : happy, sad, adventurous, scary, excited, relaxed, curious, nostalgic, inspired, romantic, thoughtful, funny, dark, uplifting, tense, magical")
