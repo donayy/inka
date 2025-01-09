@@ -468,27 +468,27 @@ try:
         all_directors = sorted(set(director for directors in df['directors'] for director in directors))
         director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
         if director_input:
-        suggestions = get_director_suggestions(director_input, all_directors)
-        if suggestions:
-            st.write("Yönetmenler:")
-            for suggestion in suggestions[:5]:  
-                st.write(f"- {suggestion.capitalize()}")
-            closest_match = suggestions[0]
-            recommendations = director_based_recommender(closest_match, df)
-            if isinstance(recommendations, pd.DataFrame):
-                st.write(f"'{closest_match}' yönetmeninden öneriler:")
-                for _, row in recommendations.iterrows():
-                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
-                    if row['poster_url']:
-                        st.image(row['poster_url'], width=500)
-                    else:
-                        st.write("Poster bulunamadı.")
+            suggestions = get_director_suggestions(director_input, all_directors)
+            if suggestions:
+                st.write("Yönetmenler:")
+                for suggestion in suggestions[:5]:  
+                    st.write(f"- {suggestion.capitalize()}")
+                closest_match = suggestions[0]
+                recommendations = director_based_recommender(closest_match, df)
+                if isinstance(recommendations, pd.DataFrame):
+                    st.write(f"'{closest_match}' yönetmeninden öneriler:")
+                    for _, row in recommendations.iterrows():
+                        st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
+                        if row['poster_url']:
+                            st.image(row['poster_url'], width=500)
+                        else:
+                            st.write("Poster bulunamadı.")
+                else:
+                    st.write(recommendations)
             else:
-                st.write(recommendations)
+                st.write(f"'{director_input}' içeren yönetmen bulunamadı. Lütfen başka bir yönetmen deneyin.")
         else:
-            st.write(f"'{director_input}' içeren yönetmen bulunamadı. Lütfen başka bir yönetmen deneyin.")
-    else:
-        st.write("Yönetmen için bir şeyler yazmaya başlayın...")
+            st.write("Yönetmen için bir şeyler yazmaya başlayın...")
 
     
 
