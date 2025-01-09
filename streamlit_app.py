@@ -510,8 +510,8 @@ try:
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
                 st.write(f"'{director_input}' yönetmeninden öneriler:")
                 for _, row in recommendations.iterrows():
-                # Check for original language and display original title if not English
-                    if row['original_language'] != 'English' and pd.notna(row['original_title']):
+                    # Check for original language and display original title if not English
+                    if row['original_language'] != 'en' and pd.notna(row['original_title']):
                         title_display = f"{row['title']} / {row['original_title']}"
                     else:
                         title_display = row['title']
@@ -521,7 +521,6 @@ try:
                         st.image(row['poster_url'], width=500)
                     else:
                         st.write("Poster bulunamadı.")
-                    # Display overview in Turkish
                     if row['overview']:
                         translated_overview = translate_text(row['overview'], dest_language='tr')
                         st.write(f"**Özet:** {translated_overview}")
@@ -529,6 +528,7 @@ try:
                         st.write("Özet bulunamadı.")
             else:
                 st.write(recommendations)
+
     
 
     elif page == "Oyuncu Seçimine Göre":
