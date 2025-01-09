@@ -504,7 +504,7 @@ try:
 
 
     elif page == "Yönetmen Seçimine Göre":
-        director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
+        director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan, Quentin Tarantino, Nuri Bilge Ceylan, Ferzan Özpetek):")
         if director_input:
             recommendations = director_based_recommender(director_input, df)
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
