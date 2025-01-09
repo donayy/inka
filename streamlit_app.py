@@ -108,32 +108,31 @@ def get_genre_suggestions(partial_input, all_genres):
     return suggestions
 
 # Director-based recommender function
-df['directors'] = df['directors'].apply(
-    lambda x: [] if pd.isna(x) else x if isinstance(x, list) else str(x).split(',') if isinstance(x, str) else []
-)
+df = df[df['directors'].notna()]
 
 def director_based_recommender(director, dataframe, percentile=0.90):
     director_choices = sorted(set(director for directors in dataframe['directors'] for director in directors))
+
     closest_match = difflib.get_close_matches(director.lower(), [d.lower() for d in director_choices], n=1, cutoff=0.8)
     if not closest_match:
         return f"Warning: {director} isimli bir yönetmen bulunamadı."
     closest_match = closest_match[0].capitalize()
-    
+
     df = dataframe[dataframe['directors'].apply(lambda x: closest_match in x)]
     if df.empty:
         return f"'{closest_match}' yönetmeni için öneri bulunamadı."
-    
+
     num_votes = df[df['numVotes'].notnull()]['numVotes'].astype('int')
     vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('float')
     C = vote_averages.mean()
     m = num_votes.quantile(percentile)
-    
+
     qualified = df[
         (df['numVotes'] >= m) &
         (df['numVotes'].notnull()) &
         (df['averageRating'].notnull())
     ][['title', 'numVotes', 'averageRating', 'popularity', 'poster_url']]
-    
+
     qualified['numVotes'] = qualified['numVotes'].astype('int')
     qualified['averageRating'] = qualified['averageRating'].astype('float')
     qualified['wr'] = qualified.apply(
@@ -148,6 +147,7 @@ def get_director_suggestions(partial_input, all_directors):
     partial_input = partial_input.lower()
     suggestions = [director for director in all_directors if partial_input in director.lower()]
     return suggestions
+
 
 
 # Cast-based recommender function
@@ -469,7 +469,7 @@ try:
 
 
     elif page == "Yönetmen Seçimine Göre":
-        all_directors = sorted(set(director for directors in df['directors'] for director in directors))
+        all_directors = sorted(set(director for directors in df_new['directors'] for director in directors))
         director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
         if director_input:
             suggestions = get_director_suggestions(director_input, all_directors)
@@ -478,7 +478,7 @@ try:
                 for suggestion in suggestions[:5]:  
                     st.write(f"- {suggestion.capitalize()}")
                 closest_match = suggestions[0]
-                recommendations = director_based_recommender(closest_match, df)
+                recommendations = director_based_recommender(closest_match, df_new)
                 if isinstance(recommendations, pd.DataFrame):
                     st.write(f"'{closest_match}' yönetmeninden öneriler:")
                     for _, row in recommendations.iterrows():
