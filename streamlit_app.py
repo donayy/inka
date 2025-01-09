@@ -177,7 +177,7 @@ def content_based_recommender(title, dataframe, top_n=10):
 
     target_movie = dataframe[dataframe['title'] == title]
     if target_movie.empty:
-        return pd.DataFrame(columns=['Film Adı', 'IMDB Rating'])
+        return pd.DataFrame(columns=['Film Adı', 'IMDB Rating', 'Poster URL'])
 
     target_movie = target_movie.iloc[0]
 
@@ -198,11 +198,17 @@ def content_based_recommender(title, dataframe, top_n=10):
             if pd.isna(row['averageRating']):
                 continue
 
-            recommendations.append({'Film Adı': row['title'], 'IMDB Rating': row['averageRating'], 'Total Score': total_score})
+            recommendations.append({
+                'Film Adı': row['title'], 
+                'IMDB Rating': row['averageRating'], 
+                'Poster URL': row.get('poster_url', None), 
+                'Total Score': total_score
+            })
 
     sorted_recommendations = sorted(recommendations, key=lambda x: x['Total Score'], reverse=True)[:top_n]
 
     return pd.DataFrame(sorted_recommendations).drop(columns=['Total Score']).reset_index(drop=True)
+
 
 
 # Keyword-based recommender function
