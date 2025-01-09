@@ -297,7 +297,7 @@ st.markdown(
         background-size: cover;
         background-repeat: no-repeat;
         background-attachment: scroll;
-        background-position: center 40%;
+        background-position: center 55%;
     }}
     </style>
     """,
