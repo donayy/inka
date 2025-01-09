@@ -466,7 +466,7 @@ try:
                     st.write("Poster bulunamadı.")
                 if row['overview']:
                     translated_overview = translate_text(row['overview'], dest_language='tr')
-                    st.write(f"**Özet (Türkçe):** {translated_overview}")
+                    st.write(f"**Özet:** {translated_overview}")
                 else:
                     st.write("Özet bulunamadı.")
 
