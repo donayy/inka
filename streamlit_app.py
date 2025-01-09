@@ -215,16 +215,23 @@ def content_based_recommender(title, dataframe, top_n=10):
 
 # Keyword-based recommender function
 def keyword_based_recommender(keyword, dataframe, top_n=10):
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+    import pandas as pd
     keyword = keyword.lower()
     dataframe['overview'] = dataframe['overview'].astype(str)
     dataframe['keywords'] = dataframe['keywords'].astype(str)
     dataframe['tagline'] = dataframe['tagline'].astype(str)
-    filtered_df = dataframe[
-        dataframe['overview'].str.lower().str.contains(keyword, na=False) |
-        dataframe['keywords'].str.lower().str.contains(keyword, na=False) |
-        dataframe['tagline'].str.lower().str.contains(keyword, na=False)]
-    filtered_df = filtered_df.sort_values(by=['popularity', 'averageRating'], ascending=[False, False])
+    dataframe['combined_text'] = dataframe['overview'] + " " + dataframe['keywords'] + " " + dataframe['tagline']
+    vectorizer = TfidfVectorizer(stop_words='english')
+    tfidf_matrix = vectorizer.fit_transform(dataframe['combined_text'])
+    keyword_vector = vectorizer.transform([keyword])
+    similarity_scores = cosine_similarity(keyword_vector, tfidf_matrix).flatten()
+    dataframe['similarity'] = similarity_scores
+    filtered_df = dataframe[dataframe['similarity'] > 0]
+    filtered_df = filtered_df.sort_values(by=['similarity', 'popularity', 'averageRating'], ascending=[False, False, False])
     return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url', 'overview', 'tagline']].reset_index(drop=True)
+
 
 
 
