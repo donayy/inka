@@ -515,13 +515,12 @@ try:
                     st.write(f"'{movie_title}' benzeri filmler:")
                     for _, row in recommendations.iterrows():
                         st.write(f"**{row['Film Adı']}** (IMDB Rating: {row['IMDB Rating']:.1f})")
-                        if row.get('poster_url'):
-                            st.image(row['poster_url'], width=200)
+                        if row['Poster URL'] and row['Poster URL'] != 'Poster bulunamadı':
+                            st.image(row['Poster URL'], width=200)
                         else:
                             st.write("Poster bulunamadı.")
             except Exception as e:
                 st.error(f"Bir hata oluştu: {e}")
-
 
 
     elif page == "Anahtar Kelimelere Göre":
