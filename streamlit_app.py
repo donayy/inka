@@ -500,9 +500,24 @@ try:
     
     elif page == "Film Benzeri Öneriler":
         movie_title = st.text_input("Bir film ismi girin (örneğin, Inception):")
+
         if movie_title:
-            recommendations = content_based_recommender(movie_title, df)
-            st.table(recommendations)
+            try:
+                recommendations = content_based_recommender(movie_title, df)
+            
+                if recommendations.empty:
+                    st.write(f"'{movie_title}' ile ilgili öneri bulunamadı.")
+                else:
+                    st.write(f"'{movie_title}' benzeri filmler:")
+                    for _, row in recommendations.iterrows():
+                        st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
+                        if row.get('poster_url'):
+                            st.image(row['poster_url'], width=200)
+                        else:
+                            st.write("Poster bulunamadı.")
+            except Exception as e:
+                st.error(f"Bir hata oluştu: {e}")
+
 
 
     elif page == "Anahtar Kelimelere Göre":
