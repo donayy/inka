@@ -154,13 +154,13 @@ def cast_based_recommender_tmdb_f(df, cast_name, percentile=0.90):
     qualified = df_cast[(df_cast['numVotes'] >= m) &
                         (df_cast['numVotes'].notnull()) &
                         (df_cast['averageRating'].notnull())][
-        ['title', 'numVotes', 'averageRating', 'popularity']]
+        ['title', 'numVotes', 'averageRating', 'popularity', 'poster_url']]
     qualified['wr'] = qualified.apply(
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + (
                     m / (m + x['numVotes']) * C),
         axis=1)
     qualified = qualified.drop_duplicates(subset='title')
-    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating']].reset_index(drop=True)
+    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
 
 # Keyword-based recommender function
 def keyword_based_recommender(keyword, dataframe, top_n=10):
@@ -177,7 +177,7 @@ def keyword_based_recommender(keyword, dataframe, top_n=10):
     ]
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
 
-    return filtered_df.head(top_n)[['title']].reset_index(drop=True)
+    return filtered_df.head(top_n)[['title', 'poster_url']].reset_index(drop=True)
 
 
 
@@ -254,7 +254,7 @@ def mood_based_recommender(mood, dataframe, top_n=10):
     
     # Sort by popularity and return the top results
     filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
-    return filtered_df.head(top_n)[['title']].reset_index(drop=True)
+    return filtered_df.head(top_n)[['title', 'poster_url']].reset_index(drop=True)
     
 
 
