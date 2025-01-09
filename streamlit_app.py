@@ -548,7 +548,9 @@ try:
             st.table(recommendations)
 
     elif page == "Ruh Hali Önerileri":
-        mood = st.text_input("Bir ruh hali girin (örneğin: mutlu, üzgün, maceracı, korkutucu, heyecanlı):")
+        mood = st.text_input("Bir ruh hali girin (örneğin: mutlu, üzgün, maceracı, korkutucu, heyecanlı) / Enter a mood (e.g., happy, sad, adventurous, scary, excited):")
+        st.write(f"Seçenekler : mutlu,üzgün, maceracı, korkutucu, heyecanlı, rahatlamış, meraklı, nostaljik, ilham verici, romantik, düşünceli, komik, karanlık, moral verici, gergin, büyülü")
+        st.write(f"Options : happy, sad, adventurous, scary, excited, relaxed, curious, nostalgic, inspired, romantic, thoughtful, funny, dark, uplifting, tense, magical")
         if mood:
             mood_in_english = mood_translation.get(mood.lower(), mood.lower())
             recommendations = mood_based_recommender(mood_in_english, df)
@@ -556,6 +558,7 @@ try:
                 st.table(recommendations)
             else:
                 st.write(f"'{mood}' ruh hali için öneri bulunamadı.")
+
 
     
 
