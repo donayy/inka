@@ -108,16 +108,20 @@ def get_genre_suggestions(partial_input, all_genres):
     return suggestions
 
 # Director-based recommender function
+def get_director_suggestions(partial_input, all_directors):
+    partial_input = partial_input.lower()
+    suggestions = [director for director in all_directors if partial_input in director.lower()]
+    return suggestions
+    
 def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
     dataframe['directors'] = dataframe['directors'].fillna('').astype(str)
     all_directors = dataframe['directors'].unique()
-
     suggestions = get_director_suggestions(director, all_directors)
+
     if not suggestions:
         return f"'{director}' ile başlayan bir yönetmen bulunamadı. Lütfen başka bir isim deneyin."
 
     closest_match = suggestions[0]
-
     df = dataframe[dataframe['directors'].str.contains(closest_match, case=False, na=False)]
     if df.empty:
         return f"'{closest_match}' isimli yönetmenin yeterli filmi bulunamadı."
@@ -135,13 +139,6 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
     qualified = qualified.sort_values('wr', ascending=False).head(10)
 
     return qualified[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
-
-
-def get_director_suggestions(partial_input, all_directors):
-    partial_input = partial_input.lower()
-    suggestions = [director for director in all_directors if partial_input in director.lower()]
-    return suggestions
-
 
 # Cast-based recommender function
 def preprocess_cast_column(df):
@@ -478,7 +475,7 @@ try:
 
             if suggestions:
                 st.write("Yönetmen Önerileri:")
-                for suggestion in suggestions[:5]:
+                for suggestion in suggestions[:5]: 
                     st.write(f"- {suggestion}")
 
                 closest_match = suggestions[0]
@@ -496,8 +493,6 @@ try:
                     st.write(recommendations)
             else:
                 st.write(f"'{director_input}' ile başlayan bir yönetmen bulunamadı. Lütfen başka bir isim deneyin.")
-
-
 
 
     elif page == "Oyuncu Seçimine Göre":
