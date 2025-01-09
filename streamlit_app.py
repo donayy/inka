@@ -467,7 +467,7 @@ try:
 
 
     elif page == "Yönetmen Seçimine Göre":
-        all_directors = sorted(set(director for directors in df_new['directors'] for director in directors))
+        all_directors = sorted(set(director for directors in df['directors'] for director in directors))
         director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
         if director_input:
             suggestions = get_director_suggestions(director_input, all_directors)
@@ -476,7 +476,7 @@ try:
                 for suggestion in suggestions[:5]:  
                     st.write(f"- {suggestion.capitalize()}")
                 closest_match = suggestions[0]
-                recommendations = director_based_recommender(closest_match, df_new)
+                recommendations = director_based_recommender(closest_match, df)
                 if isinstance(recommendations, pd.DataFrame):
                     st.write(f"'{closest_match}' yönetmeninden öneriler:")
                     for _, row in recommendations.iterrows():
