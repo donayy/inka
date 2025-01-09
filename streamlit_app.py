@@ -455,8 +455,8 @@ try:
 
 
     elif page == "Yönetmen Seçimine Göre":
-        df['directors'] = df['directors'].apply(lambda x: x if isinstance(x, list) else str(x).split(',') if isinstance(x, str) else [])
-        all_directors = sorted(set(director.strip().lower() for directors in df['directors'] for director in directors))
+        df['directors'] = df['directors'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
+        all_directors = sorted(set(director.strip().lower() for directors in df['directors'] for director in directors.split(',')))
         director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
         if director_input:
             suggestions = get_director_suggestions(director_input, all_directors)
