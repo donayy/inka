@@ -118,10 +118,11 @@ def get_genre_suggestions(partial_input, all_genres):
 # Director-based recommender function
 def director_based_recommender(director, dataframe, percentile=0.90):
     director_choices = dataframe['directors'].dropna().unique()
-    closest_match = difflib.get_close_matches(director, director_choices, n=1, cutoff=0.8)
-    if not closest_match:
+    closest_matches = difflib.get_close_matches(director, director_choices, n=5, cutoff=0.5)
+    if not closest_matches:
         return f"Hata: {director} isimli bir yönetmen bulunamadı."
-    closest_match = closest_match[0]
+
+    closest_match = closest_matches[0]
     df = dataframe[dataframe['directors'] == closest_match]
     numVotess = df[df['numVotes'].notnull()]['numVotes'].astype('int')
     vote_averages = df[df['averageRating'].notnull()]['averageRating'].astype('int')
@@ -135,13 +136,13 @@ def director_based_recommender(director, dataframe, percentile=0.90):
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + (m / (m + x['numVotes']) * C),
         axis=1)
     qualified = qualified.drop_duplicates(subset='title')
-    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'original_title', 'original_language', 'averageRating', 'poster_url', 'overview']].reset_index(drop=True)
+    return closest_matches, qualified.sort_values('wr', ascending=False).head(10)[['title', 'original_title', 'original_language', 'averageRating', 'poster_url', 'overview']].reset_index(drop=True)
 
 
 def get_director_suggestions(partial_input, all_directors):
     partial_input = partial_input.lower()
     suggestions = [director for director in all_directors if partial_input in director]
-    return suggestions
+    return suggestions 
 
 
 
@@ -504,11 +505,16 @@ try:
 
 
     elif page == "Yönetmen Seçimine Göre":
-        director_input = st.text_input("Bir yönetmen ismi girin (\u00f6rne\u011fin, Christopher Nolan, Quentin Tarantino, Nuri Bilge Ceylan, Ferzan Özpetek):")
+        director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan, Quentin Tarantino, Nuri Bilge Ceylan, Ferzan Özpetek):")
         if director_input:
-            recommendations = director_based_recommender(director_input, df)
+            closest_matches, recommendations = director_based_recommender(director_input, df)
+            if closest_matches:
+                st.write(f"'{director_input}' ile en yakın eşleşen yönetmenler:")
+                for match in closest_matches:
+                    st.write(f"- {match}")
+        
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
-                st.write(f"'{director_input}' yönetmeninden öneriler:")
+                st.write(f"'{closest_matches[0]}' yönetmeninden öneriler:")
                 for _, row in recommendations.iterrows():
                     # Check for original language and display original title if not English
                     if row['original_language'] != 'en' and pd.notna(row['original_title']):
@@ -527,7 +533,7 @@ try:
                     else:
                         st.write("Özet bulunamadı.")
             else:
-                st.write(recommendations)
+                st.write("Hiçbir öneri bulunamadı.")
 
     
 
