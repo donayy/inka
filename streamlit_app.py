@@ -160,7 +160,7 @@ def preprocess_cast_column(df):
 def cast_based_recommender_tmdb_f(df, cast_name, percentile=0.90):
     df = preprocess_cast_column(df)
     cast_columns = df.columns[5:]
-    df_cast = df[df[cast_columns].apply(lambda x: x.str.contains(cast_name, na=False).any(), axis=1)]
+    df_cast = df[df[cast_columns].apply(lambda x: any(x.str.contains(cast_name, na=False)), axis=1)]
     if df_cast.empty:
         return f"{cast_name} için film bulunamadı.", []
     numVotess = df_cast[df_cast['numVotes'].notnull()]['numVotes'].astype('int')
