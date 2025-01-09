@@ -132,8 +132,9 @@ def director_based_recommender_tmdb_f(director, dataframe, percentile=0.90):
 
 def get_director_suggestions(partial_input, all_directors):
     partial_input = partial_input.lower()
-    suggestions = [director for director in all_directors if partial_input in director.lower()]
+    suggestions = [director for director in all_directors if partial_input in director]
     return suggestions
+
 
 # Cast-based recommender function
 def preprocess_cast_column(df):
@@ -161,24 +162,6 @@ def cast_based_recommender_tmdb_f(df, cast_name, percentile=0.90):
         axis=1)
     qualified = qualified.drop_duplicates(subset='title')
     return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating', 'poster_url']].reset_index(drop=True)
-
-# Keyword-based recommender function
-def keyword_based_recommender(keyword, dataframe, top_n=10):
-    keyword = keyword.lower()
-    
-    # Ensure the columns are strings
-    dataframe['overview'] = dataframe['overview'].astype(str)
-    dataframe['keywords'] = dataframe['keywords'].astype(str)
-    
-    # Filter the dataframe
-    filtered_df = dataframe[
-        dataframe['overview'].str.lower().str.contains(keyword, na=False) |
-        dataframe['keywords'].str.lower().str.contains(keyword, na=False)
-    ]
-    filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
-
-    return filtered_df.head(top_n)[['title', 'poster_url']].reset_index(drop=True)
-
 
 
 # Content-based recommender using Jaccard similarity
@@ -217,7 +200,22 @@ def content_based_recommender(title, dataframe, top_n=10):
 
     return pd.DataFrame(sorted_recommendations).drop(columns=['Total Score']).reset_index(drop=True)
 
+# Keyword-based recommender function
+def keyword_based_recommender(keyword, dataframe, top_n=10):
+    keyword = keyword.lower()
+    
+    # Ensure the columns are strings
+    dataframe['overview'] = dataframe['overview'].astype(str)
+    dataframe['keywords'] = dataframe['keywords'].astype(str)
+    
+    # Filter the dataframe
+    filtered_df = dataframe[
+        dataframe['overview'].str.lower().str.contains(keyword, na=False) |
+        dataframe['keywords'].str.lower().str.contains(keyword, na=False)
+    ]
+    filtered_df = filtered_df.sort_values(by='popularity', ascending=False)
 
+    return filtered_df.head(top_n)[['title', 'poster_url']].reset_index(drop=True)
 
 # Mood-based recommender function
 mood_to_genre = {
@@ -431,20 +429,15 @@ try:
     elif page == "Türe Göre Öneriler":
         df['genres'] = df['genres'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
         all_genres = sorted(set(genre.strip().lower() for genres in df['genres'] for genre in genres))
-
         genre_input = st.text_input("Bir tür girin (örneğin, Action):")
-
         if genre_input:
             suggestions = get_genre_suggestions(genre_input, all_genres)
-
             if suggestions:
                 st.write("Türler:")
                 for suggestion in suggestions[:5]:  
                     st.write(f"- {suggestion.capitalize()}")
-
                 closest_match = suggestions[0]
                 recommendations = genre_based_recommender_tmbd_f(df, closest_match)
-
                 if isinstance(recommendations, pd.DataFrame):
                     st.write(f"'{closest_match.capitalize()}' türündeki öneriler:")
                     for _, row in recommendations.iterrows():
@@ -462,22 +455,33 @@ try:
 
 
     elif page == "Yönetmen Seçimine Göre":
+        df['directors'] = df['directors'].apply(lambda x: x if isinstance(x, list) else str(x).split(','))
+        all_directors = sorted(set(director.strip().lower() for directors in df['directors'] for director in directors))
         director_input = st.text_input("Bir yönetmen ismi girin (örneğin, Christopher Nolan):")
-    
         if director_input:
-            recommendations = director_based_recommender_tmdb_f(director_input, df)
-        
-            if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
-                st.write(f"'{director_input}' yönetmeninden öneriler:")
-                for _, row in recommendations.iterrows():
-                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
-                    if row['poster_url']:
-                        st.image(row['poster_url'], width=500)
-                    else:
-                        st.write("Poster bulunamadı.")
+            suggestions = get_director_suggestions(director_input, all_directors)
+            if suggestions:
+                st.write("Yönetmenler:")
+                for suggestion in suggestions[:5]:  
+                    st.write(f"- {suggestion.capitalize()}")
+                closest_match = suggestions[0]
+                recommendations = director_based_recommender_tmbd_f(df, closest_match)
+                if isinstance(recommendations, pd.DataFrame):
+                    st.write(f"'{closest_match.capitalize()}' yönetmeninden öneriler:")
+                    for _, row in recommendations.iterrows():
+                        st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
+                        if row['poster_url']:
+                            st.image(row['poster_url'], width=500)
+                        else:
+                            st.write("Poster bulunamadı.")
+                else:
+                    st.write(recommendations)
             else:
-                st.write(recommendations)
+                st.write(f"'{director_input}' içeren yönetmen bulunamadı. Lütfen başka bir yönetmen deneyin.")
+        else:
+            st.write("Yönetmen için bir şeyler yazmaya başlayın...")
 
+    
 
     elif page == "Oyuncu Seçimine Göre":
         cast_name = st.text_input("Bir oyuncu ismi girin (örneğin, Christian Bale):")
