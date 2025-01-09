@@ -128,14 +128,14 @@ def director_based_recommender(director, dataframe, percentile=0.90):
     C = vote_averages.mean()
     m = numVotess.quantile(percentile)
     qualified = df[(df['numVotes'] >= m) & (df['numVotes'].notnull()) & 
-                   (df['averageRating'].notnull())][['title', 'numVotes', 'averageRating', 'popularity', 'poster_url', 'overview']]
+                   (df['averageRating'].notnull())][['title', 'original_title', 'original_language', 'numVotes', 'averageRating', 'popularity', 'poster_url', 'overview']]
     qualified['numVotes'] = qualified['numVotes'].astype('int')
     qualified['averageRating'] = qualified['averageRating'].astype('int')
     qualified['wr'] = qualified.apply(
         lambda x: (x['numVotes'] / (x['numVotes'] + m) * x['averageRating']) + (m / (m + x['numVotes']) * C),
         axis=1)
     qualified = qualified.drop_duplicates(subset='title')
-    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'averageRating', 'poster_url', 'overview']].reset_index(drop=True)
+    return qualified.sort_values('wr', ascending=False).head(10)[['title', 'original_title', 'original_language', 'averageRating', 'poster_url', 'overview']].reset_index(drop=True)
 
 
 def get_director_suggestions(partial_input, all_directors):
@@ -510,14 +510,21 @@ try:
             if isinstance(recommendations, pd.DataFrame) and not recommendations.empty:
                 st.write(f"'{director_input}' yönetmeninden öneriler:")
                 for _, row in recommendations.iterrows():
-                    st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
+                # Check for original language and display original title if not English
+                    if row['original_language'] != 'English' and pd.notna(row['original_title']):
+                        title_display = f"{row['title']} / {row['original_title']}"
+                    else:
+                        title_display = row['title']
+                
+                    st.write(f"**{title_display}** (IMDB Rating: {row['averageRating']:.1f})")
                     if row['poster_url']:
                         st.image(row['poster_url'], width=500)
                     else:
                         st.write("Poster bulunamadı.")
+                    # Display overview in Turkish
                     if row['overview']:
                         translated_overview = translate_text(row['overview'], dest_language='tr')
-                        st.write(f"**Özet:** {translated_overview}")
+                        st.write(f"**Özet (Türkçe):** {translated_overview}")
                     else:
                         st.write("Özet bulunamadı.")
             else:
