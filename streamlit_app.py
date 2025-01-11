@@ -435,13 +435,13 @@ try:
     st.sidebar.title("Film Öneri Seçenekleri")
     page = st.sidebar.radio(
     "Hangi türde öneri istiyorsunuz?", 
-    options=["Popüler Filmler", "Türe Göre Öneriler", "Yönetmen Seçimine Göre",
+    options=["Tüm Zamanların En İyi Filmleri", "Türe Göre Öneriler", "Yönetmen Seçimine Göre",
              "Oyuncu Seçimine Göre", "Girdiğiniz Filme Göre Öneriler", "Anahtar Kelimelere Göre",
              "Ruh Haline Göre Öneriler", "Hakkımızda"])
 
 
-    if page == "Popüler Filmler":
-        if st.button("Popüler Filmleri Listele"):
+    if page == "Tüm Zamanların En İyi Filmleri":
+        if st.button("Tüm Zamanların En İyi Filmlerini Listele"):
             recommendations_simple = simple_recommender(df)
             for _, row in recommendations_simple.iterrows():
                 st.write(f"**{row['title']}** (IMDB Rating: {row['averageRating']:.1f})")
