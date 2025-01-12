@@ -448,7 +448,7 @@ try:
                 if row['poster_url']:
                     st.image(row['poster_url'], width=500)
                 else:
-                    st.write("Poster bulunamadı.")
+                    st.write(" ")
                 if row['overview']:
                     translated_overview = translate_text(row['overview'], dest_language='tr')
                     st.write(f"**Özet:** {translated_overview}")
@@ -475,7 +475,7 @@ try:
                         if row['poster_url']:
                             st.image(row['poster_url'], width=500)
                         else:
-                            st.write("Poster bulunamadı.")
+                            st.write(" ")
                         if row['overview']:
                             translated_overview = translate_text(row['overview'], dest_language='tr')
                             st.write(f"**Özet:** {translated_overview}")
@@ -510,7 +510,7 @@ try:
                     if row['poster_url']:
                         st.image(row['poster_url'], width=500)
                     else:
-                        st.write("Poster bulunamadı.")
+                        st.write(" ")
                     if row['overview']:
                         translated_overview = translate_text(row['overview'], dest_language='tr')
                         st.write(f"**Özet:** {translated_overview}")
@@ -535,7 +535,7 @@ try:
                     if row['poster_url']:
                         st.image(row['poster_url'], width=500)
                     else:
-                        st.write("Poster bulunamadı.")
+                        st.write(" ")
                     if row['overview']:
                         translated_overview = translate_text(row['overview'], dest_language='tr')
                         st.write(f"**Özet:** {translated_overview}")
@@ -559,7 +559,7 @@ try:
                         if row['Poster URL'] and row['Poster URL'] != 'Poster bulunamadı':
                             st.image(row['Poster URL'], width=500)
                         else:
-                            st.write("Poster bulunamadı.")
+                            st.write(" ")
                         if row['Overview'] != 'Özet bulunamadı':
                             translated_overview = translate_text(row['Overview'], dest_language='tr')
                             st.write(f"**Özet:** {translated_overview}")
@@ -580,7 +580,7 @@ try:
                     if row['poster_url']:
                         st.image(row['poster_url'], width=500) 
                     else:
-                        st.write("Poster bulunamadı.")
+                        st.write(" ")
                     if row['overview']:
                         translated_overview = translate_text(row['overview'], dest_language='tr')
                         st.write(f"**Özet:** {translated_overview}")
@@ -604,7 +604,7 @@ try:
                     if row['poster_url']:
                         st.image(row['poster_url'], width=500)  
                     else:
-                        st.write("Poster bulunamadı.") 
+                        st.write(" ") 
                     if row['overview']:
                         translated_overview = translate_text(row['overview'], dest_language='tr')
                         st.write(f"**Özet:** {translated_overview}")
