@@ -3,6 +3,8 @@ import streamlit as st
 from rapidfuzz import fuzz, process  
 import difflib
 from googletrans import Translator
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 # GitHub URL of dataset
 DATA_URL = "https://raw.githubusercontent.com/donayy/inka/refs/heads/main/movies_dataset.csv"
@@ -12,7 +14,6 @@ POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"
 @st.cache_data
 def load_data():
     df = pd.read_csv(DATA_URL, on_bad_lines="skip")
-    
     # Normalize the genres, keywords and overview column
     if 'genres' in df.columns:
         df['genres'] = df['genres'].fillna('').apply(lambda x: x.split(',') if isinstance(x, str) else [])
@@ -215,9 +216,6 @@ def content_based_recommender(title, dataframe, top_n=10):
 
 # Keyword-based recommender function
 def keyword_based_recommender(keyword, dataframe, top_n=10):
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.metrics.pairwise import cosine_similarity
-    import pandas as pd
     keyword = keyword.lower()
     dataframe['overview'] = dataframe['overview'].astype(str)
     dataframe['keywords'] = dataframe['keywords'].astype(str)
@@ -231,7 +229,6 @@ def keyword_based_recommender(keyword, dataframe, top_n=10):
     filtered_df = dataframe[dataframe['similarity'] > 0]
     filtered_df = filtered_df.sort_values(by=['similarity', 'popularity', 'averageRating'], ascending=[False, False, False])
     return filtered_df.head(top_n)[['title', 'averageRating', 'poster_url', 'overview', 'tagline']].reset_index(drop=True)
-
 
 
 
